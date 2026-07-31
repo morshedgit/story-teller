@@ -27,6 +27,17 @@ export interface Palette {
   near: string;
   ground: string;
   groundShade: string;
+  /**
+   * Interior surfaces.
+   *
+   * Exteriors reuse `ground` for the earth, which is grass-green in `day` — fine
+   * for a field, absurd for a kitchen floor. Interior backdrops read these instead,
+   * so a room can be lit by the same palette without inheriting landscape colours.
+   */
+  wall: string;
+  wallShade: string;
+  floor: string;
+  floorShade: string;
   /** Character outline. Never pure black — anime ink is a deep tinted brown/plum. */
   ink: string;
   /** Rim light along the lit edge of characters. */
@@ -52,6 +63,10 @@ export const PALETTES: Record<PaletteName, Palette> = {
     near: '#3a3459',
     ground: '#4a4468',
     groundShade: '#332f4d',
+    wall: '#c8b0ae',
+    wallShade: '#ab9296',
+    floor: '#8c7d84',
+    floorShade: '#75676f',
     ink: '#2b2340',
     rim: '#ffe2b8',
     accent: '#ff9e7d',
@@ -71,6 +86,10 @@ export const PALETTES: Record<PaletteName, Palette> = {
     near: '#4a7f78',
     ground: '#7cb36a',
     groundShade: '#5b8f52',
+    wall: '#e6e1d6',
+    wallShade: '#cdc6b8',
+    floor: '#a49d93',
+    floorShade: '#8b857c',
     ink: '#33384f',
     rim: '#ffffff',
     accent: '#ff7a6b',
@@ -90,6 +109,10 @@ export const PALETTES: Record<PaletteName, Palette> = {
     near: '#2e2442',
     ground: '#3a2c4d',
     groundShade: '#251c33',
+    wall: '#b39189',
+    wallShade: '#96736f',
+    floor: '#6f5a5e',
+    floorShade: '#5a464b',
     ink: '#241c36',
     rim: '#ffd9a0',
     accent: '#ff8f5e',
@@ -109,6 +132,10 @@ export const PALETTES: Record<PaletteName, Palette> = {
     near: '#141a36',
     ground: '#1b2242',
     groundShade: '#0e1228',
+    wall: '#3b4362',
+    wallShade: '#2c3350',
+    floor: '#282e46',
+    floorShade: '#1c2136',
     ink: '#0d1128',
     rim: '#bcd2ff',
     accent: '#7fe6d8',
@@ -128,6 +155,10 @@ export const PALETTES: Record<PaletteName, Palette> = {
     near: '#2a303a',
     ground: '#333a44',
     groundShade: '#22272f',
+    wall: '#6b7179',
+    wallShade: '#565d66',
+    floor: '#4a505a',
+    floorShade: '#3a404a',
     ink: '#1b1f26',
     rim: '#dfe7f0',
     accent: '#7fb2e8',
@@ -147,6 +178,10 @@ export const PALETTES: Record<PaletteName, Palette> = {
     near: '#7d6d5c',
     ground: '#b3a186',
     groundShade: '#93816b',
+    wall: '#ded1ba',
+    wallShade: '#c4b498',
+    floor: '#a89881',
+    floorShade: '#8f7f6a',
     ink: '#544632',
     rim: '#fffaf0',
     accent: '#c98f6a',

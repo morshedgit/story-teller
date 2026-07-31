@@ -32,6 +32,8 @@ export {
   ocean,
   platform,
   room,
+  kitchen,
+  diningRoom,
   shrine,
   voidField,
   type BackdropOptions,
