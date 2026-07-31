@@ -1,0 +1,422 @@
+/*
+ * Ambient loops.
+ *
+ * These run continuously and are *not* on the story timeline: blinking, swaying,
+ * weather, flickering windows. Driving them from JS would mean thousands of
+ * per-frame writes for motion nobody is timing, so they live in CSS and the player
+ * pauses them wholesale by toggling one attribute on the stage.
+ *
+ * Per-element variety comes from custom properties set inline by the art builders:
+ *   --d  animation-delay   (negative = start mid-cycle, so nothing is in lockstep)
+ *   --t  animation-duration
+ *   --sway / --amp  motion size
+ *
+ * Every SVG element animated here needs `transform-box: fill-box` so percentage
+ * transform origins resolve against the element instead of the whole canvas.
+ */
+
+/*
+ * Timeline cue channels.
+ *
+ * These MUST be registered with @property. An unregistered custom property has no
+ * type, so the browser cannot interpolate it — every cue would jump between its
+ * keyframes instead of animating. Registering them also gives each channel a
+ * guaranteed initial value, so a layer with no cues still composes a valid
+ * transform below.
+ */
+@property --cue-x {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --cue-y {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --cue-s {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+@property --cue-r {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/*
+ * Four independent channels composed into one transform. This is what lets a
+ * `move` and a `scale` cue run on the same layer at the same time — animating
+ * `transform` directly would mean the last cue to start wins and the other is lost.
+ *
+ * Layers pivot at bottom-centre: a character's origin is their feet, so scaling
+ * them grows them upward from the ground rather than sinking them through it.
+ */
+[data-layer] {
+  transform: translate(var(--cue-x), var(--cue-y)) scale(var(--cue-s)) rotate(var(--cue-r));
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+/* The camera pivots about the frame centre, like a real push-in. */
+[data-camera] {
+  transform: translate(var(--cue-x), var(--cue-y)) scale(var(--cue-s)) rotate(var(--cue-r));
+  transform-origin: center center;
+}
+
+.k-blink,
+.k-breathe,
+.k-breathe-slow,
+.k-sway,
+.k-sway-slow,
+.k-drift,
+.k-twinkle,
+.k-flicker,
+.k-shimmer,
+.k-fall,
+.k-rain,
+.k-zip,
+.k-pop,
+.k-hover,
+.k-pulse,
+.k-flap {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-delay: var(--d, 0s);
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+/* The player sets data-paused on the stage; everything inside freezes in place. */
+[data-paused='true'] .k-blink,
+[data-paused='true'] .k-breathe,
+[data-paused='true'] .k-breathe-slow,
+[data-paused='true'] .k-sway,
+[data-paused='true'] .k-sway-slow,
+[data-paused='true'] .k-drift,
+[data-paused='true'] .k-twinkle,
+[data-paused='true'] .k-flicker,
+[data-paused='true'] .k-shimmer,
+[data-paused='true'] .k-fall,
+[data-paused='true'] .k-rain,
+[data-paused='true'] .k-zip,
+[data-paused='true'] .k-pop,
+[data-paused='true'] .k-hover,
+[data-paused='true'] .k-pulse,
+[data-paused='true'] .k-flap {
+  animation-play-state: paused;
+}
+
+/* --- Character life ------------------------------------------------------- */
+
+/* Long open-eyed stretches with a fast double blink. Even spacing reads as robotic. */
+@keyframes k-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  94%,
+  97% {
+    transform: scaleY(0.08);
+  }
+  95.5% {
+    transform: scaleY(1);
+  }
+}
+.k-blink {
+  animation-name: k-blink;
+  animation-duration: 6.5s;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-2px) scaleY(1.008);
+  }
+}
+.k-breathe {
+  animation-name: k-breathe;
+  animation-duration: var(--t, 4.2s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-breathe-slow {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.k-breathe-slow {
+  animation-name: k-breathe-slow;
+  animation-duration: var(--t, 9s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-sway {
+  0%,
+  100% {
+    transform: rotate(-1.4deg);
+  }
+  50% {
+    transform: rotate(1.4deg);
+  }
+}
+.k-sway {
+  animation-name: k-sway;
+  animation-duration: var(--t, 5s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-sway-slow {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+.k-sway-slow {
+  animation-name: k-sway-slow;
+  animation-duration: var(--t, 3.6s);
+  animation-timing-function: ease-in-out;
+}
+
+/* --- Environment ---------------------------------------------------------- */
+
+@keyframes k-drift {
+  0% {
+    transform: translateX(-40px);
+  }
+  100% {
+    transform: translateX(40px);
+  }
+}
+.k-drift {
+  animation-name: k-drift;
+  animation-duration: var(--t, 46s);
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.k-twinkle {
+  animation-name: k-twinkle;
+  animation-duration: var(--t, 4s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-flicker {
+  0%,
+  46%,
+  100% {
+    opacity: var(--on, 0.85);
+  }
+  48%,
+  52% {
+    opacity: 0.12;
+  }
+}
+.k-flicker {
+  animation-name: k-flicker;
+  animation-duration: var(--t, 13s);
+  animation-timing-function: steps(1, end);
+}
+
+@keyframes k-shimmer {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateX(-8px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(8px);
+  }
+}
+.k-shimmer {
+  animation-name: k-shimmer;
+  animation-duration: var(--t, 3.4s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+.k-pulse {
+  animation-name: k-pulse;
+  animation-duration: var(--t, 2.8s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-flap {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.35);
+  }
+}
+.k-flap {
+  animation-name: k-flap;
+  animation-duration: var(--t, 0.7s);
+  animation-timing-function: ease-in-out;
+}
+
+/* --- Weather -------------------------------------------------------------- */
+
+/* Falls the full frame height plus margin, drifting sideways on the way down. */
+@keyframes k-fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--sway, 60px), 1000px) rotate(320deg);
+    opacity: 0;
+  }
+}
+.k-fall {
+  animation-name: k-fall;
+  animation-duration: var(--t, 12s);
+  animation-timing-function: linear;
+}
+
+@keyframes k-rain {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(1140px);
+    opacity: 0.6;
+  }
+}
+.k-rain {
+  animation-name: k-rain;
+  animation-duration: var(--t, 0.8s);
+  animation-timing-function: linear;
+}
+
+@keyframes k-hover {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(22px, -16px);
+  }
+  50% {
+    transform: translate(6px, -30px);
+  }
+  75% {
+    transform: translate(-18px, -12px);
+  }
+}
+.k-hover {
+  animation-name: k-hover;
+  animation-duration: var(--t, 8s);
+  animation-timing-function: ease-in-out;
+}
+
+/* --- Punctuation ---------------------------------------------------------- */
+
+@keyframes k-zip {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
+}
+.k-zip {
+  animation-name: k-zip;
+  animation-duration: var(--t, 0.7s);
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes k-pop {
+  0%,
+  70%,
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  80% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  90% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+.k-pop {
+  animation-name: k-pop;
+  animation-duration: var(--t, 5s);
+  animation-timing-function: ease-out;
+}
+
+/*
+ * Reduced motion: strip the looping ambience entirely. Timeline cues are collapsed
+ * separately in the player, so the story still advances and every caption is still
+ * shown — the piece stays followable, it just stops moving.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .k-blink,
+  .k-breathe,
+  .k-breathe-slow,
+  .k-sway,
+  .k-sway-slow,
+  .k-drift,
+  .k-twinkle,
+  .k-flicker,
+  .k-shimmer,
+  .k-fall,
+  .k-rain,
+  .k-zip,
+  .k-pop,
+  .k-hover,
+  .k-pulse,
+  .k-flap {
+    animation: none !important;
+  }
+}

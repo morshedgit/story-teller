@@ -1,0 +1,133 @@
+---
+import Base from '../../layouts/Base.astro';
+import StoryPlayer from '../../components/StoryPlayer.astro';
+import { resolveStory, formatClock } from '../../lib/timing';
+import { manifestFor, stories } from '../../stories';
+
+export function getStaticPaths() {
+  return stories.map((story) => ({
+    params: { slug: story.slug },
+    props: { story },
+  }));
+}
+
+const { story } = Astro.props;
+
+// Timing is settled here, at build time, against the generated audio manifest.
+// A cue written as `dur: 'beat'` becomes a concrete number of seconds now, so the
+// browser never has to guess how long a narration line takes.
+const resolved = resolveStory(story, manifestFor(story.slug));
+---
+
+<Base title={`${story.title} — Story Teller`} description={story.logline}>
+  <main id="main">
+    <header class="head wrap">
+      <a class="back" href="/">← All stories</a>
+      <h1>{story.title}</h1>
+      <p class="logline">{story.logline}</p>
+      <p class="stats">
+        {formatClock(resolved.duration)} · {resolved.scenes.length} scenes
+        {story.credit && <> · {story.credit}</>}
+      </p>
+    </header>
+
+    <div class="wrap">
+      <StoryPlayer story={story} resolved={resolved} />
+    </div>
+
+    <section class="wrap transcript">
+      <h2>Transcript</h2>
+      {
+        resolved.scenes.map((scene) => (
+          <article>
+            <h3>
+              Scene {scene.index + 1} <span>{scene.id}</span>
+            </h3>
+            {scene.beats.map((beat) => (
+              <p>
+                <span class="t">{formatClock(beat.start)}</span>
+                {beat.text}
+              </p>
+            ))}
+          </article>
+        ))
+      }
+    </section>
+  </main>
+</Base>
+
+<style>
+  main {
+    padding: 28px 0 90px;
+  }
+  .head {
+    padding-bottom: 18px;
+  }
+  .back {
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .back:hover {
+    color: var(--accent);
+  }
+  h1 {
+    font-size: clamp(1.8rem, 4vw, 2.9rem);
+  }
+  .logline {
+    margin: 8px 0 4px;
+    color: var(--text-dim);
+    max-width: 66ch;
+    font-size: 1.05rem;
+  }
+  .stats {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    opacity: 0.75;
+  }
+
+  .transcript {
+    margin-top: 64px;
+  }
+  .transcript h2 {
+    font-size: 1.35rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+  }
+  .transcript article {
+    margin-bottom: 26px;
+  }
+  .transcript h3 {
+    font-family: var(--font);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .transcript h3 span {
+    font-family: ui-monospace, monospace;
+    opacity: 0.55;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .transcript p {
+    margin: 0 0 5px;
+    max-width: 74ch;
+    display: flex;
+    gap: 14px;
+  }
+  .transcript .t {
+    flex: none;
+    width: 4.4ch;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.82rem;
+    padding-top: 0.22em;
+    opacity: 0.7;
+  }
+</style>

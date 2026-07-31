@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "story-teller",
+  "compatibility_date": "2026-07-01",
+
+  // Fully static. `astro build` emits a plain `dist/`, which Cloudflare Workers
+  // serves directly as static assets — there is no adapter, no server runtime and
+  // no `_worker.js`, so there is no `main` entrypoint to declare here.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,0 +1,242 @@
+---
+/**
+ * Art-kit contact sheet.
+ *
+ * Not part of any story — this is the visual QA surface for the kit itself.
+ * Every backdrop, every hair style, every pose and every effect renders here, so a
+ * change to `anime-kit` can be eyeballed in one screenshot before it reaches a
+ * story. Screenshot it with `npm run shoot kit`.
+ */
+import Base from '../layouts/Base.astro';
+import {
+  FRAME,
+  character,
+  city,
+  field,
+  fireflies,
+  forest,
+  lightRays,
+  mist,
+  ocean,
+  palette,
+  platform,
+  props,
+  rain,
+  room,
+  ridge,
+  sakura,
+  screenTone,
+  shrine,
+  snow,
+  sparkle,
+  speedLines,
+  vignette,
+  voidField,
+} from '../lib/anime-kit';
+import type { Expression, HairStyle, Outfit, PoseName } from '../lib/anime-kit';
+
+const backdrops: Array<[string, string]> = [
+  ['ridge / dusk', ridge({ palette: 'dusk' })],
+  ['ridge / dawn', ridge({ palette: 'dawn' })],
+  ['field / day', field({ palette: 'day' })],
+  ['forest / night', forest({ palette: 'night' })],
+  ['city / night', city({ palette: 'night' })],
+  ['ocean / dawn', ocean({ palette: 'dawn' })],
+  ['platform / dusk', platform({ palette: 'dusk' })],
+  ['room / memory', room({ palette: 'memory' })],
+  ['shrine / dusk', shrine({ palette: 'dusk' })],
+  ['ridge / storm', ridge({ palette: 'storm' })],
+  ['field / memory', field({ palette: 'memory' })],
+  ['void / night', voidField({ palette: 'night' })],
+];
+
+const effects: Array<[string, string]> = [
+  ['sakura', sakura()],
+  ['rain', rain()],
+  ['snow', snow()],
+  ['speedLines', speedLines()],
+  ['screenTone', screenTone()],
+  ['sparkle', sparkle()],
+  ['lightRays', lightRays()],
+  ['fireflies', fireflies()],
+  ['mist', mist()],
+  ['vignette', vignette()],
+];
+
+const hairStyles: HairStyle[] = ['short', 'long', 'ponytail', 'bob', 'spiky', 'messy', 'bun'];
+const poses: PoseName[] = ['stand', 'walk', 'reach', 'point', 'slump', 'sit', 'back'];
+const outfits: Outfit[] = ['uniform', 'coat', 'hoodie', 'yukata', 'apron', 'dress'];
+const expressions: Expression[] = ['neutral', 'smile', 'sad', 'surprised', 'determined', 'closed', 'worried'];
+
+const p = palette('day');
+const ink = p.ink;
+const rim = p.rim;
+
+/** Small stage that frames a single figure for the catalogue. */
+const figureBox = (svg: string) =>
+  `<svg viewBox="0 0 300 520" role="img"><rect width="300" height="520" fill="#e9eef7"/><g transform="translate(150 500)">${svg}</g></svg>`;
+---
+
+<Base title="Art kit preview">
+  <main id="main" class="wrap">
+    <h1>Art kit preview</h1>
+    <p class="note">
+      Visual QA for <code>src/lib/anime-kit</code>. Every builder renders here so the kit can be
+      reviewed in one pass, independently of any story.
+    </p>
+
+    <h2>Close-up</h2>
+    <div class="closeup">
+      <Fragment
+        set:html={`<svg viewBox="0 0 900 560" role="img"><rect width="900" height="560" fill="#e9eef7"/>
+          <g transform="translate(190 1010) scale(2.1)">${character({ hair: 'ponytail', hairColor: 'auburn', outfit: 'uniform', cloth: 'indigo', expression: 'smile', ink, rim, shadow: false })}</g>
+          <g transform="translate(470 1010) scale(2.1)">${character({ hair: 'messy', hairColor: 'navy', outfit: 'hoodie', cloth: 'moss', expression: 'determined', ink, rim, shadow: false })}</g>
+          <g transform="translate(730 540) scale(1.05)">${character({ hair: 'long', hairColor: 'black', outfit: 'yukata', cloth: 'crimson', expression: 'neutral', ink, rim })}</g>
+        </svg>`}
+      />
+    </div>
+
+    <h2>Backdrops</h2>
+    <div class="grid" data-section="backdrops">
+      {
+        backdrops.map(([label, svg]) => (
+          <figure>
+            <svg viewBox={`0 0 ${FRAME.w} ${FRAME.h}`} role="img" aria-label={label} set:html={svg} />
+            <figcaption>{label}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h2>Effects</h2>
+    <div class="grid" data-section="effects">
+      {
+        effects.map(([label, svg]) => (
+          <figure>
+            <svg viewBox={`0 0 ${FRAME.w} ${FRAME.h}`} role="img" aria-label={label}>
+              <g set:html={ridge({ palette: 'dusk', seed: 'fx-bed' })} />
+              <g set:html={svg} />
+            </svg>
+            <figcaption>{label}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h2>Hair</h2>
+    <div class="strip">
+      {
+        hairStyles.map((hair) => (
+          <figure>
+            <Fragment set:html={figureBox(character({ hair, hairColor: 'black', ink, rim }))} />
+            <figcaption>{hair}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h2>Poses</h2>
+    <div class="strip">
+      {
+        poses.map((pose) => (
+          <figure>
+            <Fragment set:html={figureBox(character({ pose, hair: 'ponytail', hairColor: 'auburn', ink, rim }))} />
+            <figcaption>{pose}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h2>Outfits</h2>
+    <div class="strip">
+      {
+        outfits.map((outfit) => (
+          <figure>
+            <Fragment set:html={figureBox(character({ outfit, hair: 'long', hairColor: 'navy', cloth: 'plum', ink, rim }))} />
+            <figcaption>{outfit}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h2>Expressions</h2>
+    <div class="strip">
+      {
+        expressions.map((expression) => (
+          <figure>
+            <Fragment
+              set:html={`<svg viewBox="0 0 200 200" role="img"><rect width="200" height="200" fill="#e9eef7"/><g transform="translate(100 826) scale(1.8)">${character(
+                { expression, hair: 'bob', hairColor: 'sakura', ink, rim, shadow: false },
+              )}</g></svg>`}
+            />
+            <figcaption>{expression}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h2>Props</h2>
+    <div class="strip">
+      {
+        (
+          [
+            ['lantern', props.lantern()],
+            ['bicycle', props.bicycle()],
+            ['signpost', props.signpost()],
+          ] as Array<[string, string]>
+        ).map(([label, svg]) => (
+          <figure>
+            <Fragment
+              set:html={`<svg viewBox="0 0 300 300" role="img"><rect width="300" height="300" fill="#e9eef7"/><g transform="translate(150 250)">${svg}</g></svg>`}
+            />
+            <figcaption>{label}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </main>
+</Base>
+
+<style>
+  main {
+    padding: 40px 24px 100px;
+  }
+  h2 {
+    margin: 48px 0 16px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+  }
+  .note {
+    color: var(--text-dim);
+    max-width: 62ch;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+  figure {
+    margin: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  figure :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  figcaption {
+    padding: 7px 10px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-family: ui-monospace, monospace;
+  }
+</style>

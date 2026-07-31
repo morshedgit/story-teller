@@ -1,0 +1,29 @@
+{
+  "name": "story-teller",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "narrate": "node scripts/narrate.mjs",
+    "shoot": "node scripts/shoot.mjs",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "astro": "^7.1.6"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "esbuild": "^0.25.0",
+    "music-metadata": "^11.2.1",
+    "playwright": "^1.50.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^4.118.0"
+  }
+}

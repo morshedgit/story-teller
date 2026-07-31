@@ -1,0 +1,331 @@
+---
+/**
+ * The player shell: stage, captions and transport.
+ *
+ * The resolved timeline is serialised into the page as JSON and handed to the
+ * runtime. The browser never re-derives timing — every duration was already settled
+ * at build time against the audio manifest.
+ */
+import SceneStage from './SceneStage.astro';
+import type { Story } from '../lib/story';
+import type { ResolvedStory } from '../lib/timing';
+import { formatClock } from '../lib/timing';
+
+interface Props {
+  story: Story;
+  resolved: ResolvedStory;
+}
+
+const { story, resolved } = Astro.props;
+const beatCount = resolved.scenes.reduce((sum, scene) => sum + scene.beats.length, 0);
+---
+
+<div class="player" data-player data-paused="true" tabindex="-1">
+  <div class="stage-wrap">
+    <div class="stage" data-stage data-palette={resolved.scenes[0]?.palette}>
+      <svg viewBox="0 0 1600 900" role="img" aria-label={`${resolved.title}. ${resolved.logline}`}>
+        {story.scenes.map((scene, index) => <SceneStage scene={scene} index={index} />)}
+      </svg>
+    </div>
+
+    <p class="caption" data-caption aria-live="polite">{resolved.scenes[0]?.beats[0]?.text ?? ''}</p>
+  </div>
+
+  <div class="controls">
+    <div class="bar">
+      <button class="icon" data-action="play" data-state="paused" aria-label="Play" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z"></path><path
+            class="i-pause"
+            d="M6 5h4v14H6zM14 5h4v14h-4z"></path><path class="i-replay" d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"
+          ></path></svg>
+      </button>
+
+      <span class="time"><span data-elapsed>0:00</span> / <span data-total>{formatClock(resolved.duration)}</span></span>
+
+      <input
+        class="scrub"
+        data-scrub
+        type="range"
+        min="0"
+        max={Math.ceil(resolved.duration)}
+        value="0"
+        step="1"
+        aria-label="Seek through the story"
+      />
+
+      <button class="icon small" data-action="prev" aria-label="Previous scene" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3 6l9 6V6z"></path></svg>
+      </button>
+      <button class="icon small" data-action="next" aria-label="Next scene" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l9-6-9-6z"></path></svg>
+      </button>
+      <button class="icon small" data-action="restart" aria-label="Restart from the beginning" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"></path></svg>
+      </button>
+      <button class="icon small" data-action="mute" data-state="on" aria-label="Mute narration" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-on" d="M3 9v6h4l5 5V4L7 9zm13 3a4 4 0 0 0-2-3.5v7A4 4 0 0 0 16 12z"
+          ></path><path class="i-off" d="M3 9v6h4l5 5V4L7 9zm16 1.5L17.5 9 16 10.5 14.5 9 13 10.5 14.5 12 13 13.5 14.5 15 16 13.5 17.5 15 19 13.5 17.5 12z"
+          ></path></svg>
+      </button>
+    </div>
+
+    <div class="meta">
+      <span data-scene-label>Scene 1 / {resolved.scenes.length}</span>
+      <span>{beatCount} beats</span>
+      {
+        resolved.hasAudio ? (
+          <span class="badge on">voiced</span>
+        ) : (
+          <span class="badge off" title="No narration audio has been generated yet — run `npm run narrate` with a TTS key. Timing falls back to reading-speed estimates.">
+            captions only
+          </span>
+        )
+      }
+    </div>
+  </div>
+
+  <audio data-audio preload="auto"></audio>
+</div>
+
+<script is:inline define:vars={{ payload: resolved }}>
+  window.__storyPayload = payload;
+</script>
+
+<script>
+  import { mountPlayer } from '../scripts/player';
+  import type { ResolvedStory } from '../lib/timing';
+
+  const payload = (window as unknown as { __storyPayload: ResolvedStory }).__storyPayload;
+  if (payload) mountPlayer(payload);
+</script>
+
+<style>
+  .player {
+    --progress: 0%;
+  }
+  .player:focus {
+    outline: none;
+  }
+
+  .stage-wrap {
+    position: relative;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background: #05070f;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 55%);
+  }
+
+  .stage :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Only the active scene is painted. */
+  .stage :global([data-scene][data-active='false']) {
+    display: none;
+  }
+
+  .stage :global([data-scene][data-active='true'][data-transition='fade']) {
+    animation: scene-fade 0.55s ease both;
+  }
+  .stage :global([data-scene][data-active='true'][data-transition='flash']) {
+    animation: scene-flash 0.4s ease both;
+  }
+  .stage :global([data-scene][data-active='true'][data-transition='iris']) {
+    animation: scene-iris 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stage :global([data-scene][data-active='true'][data-transition='wipe']) {
+    animation: scene-wipe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes scene-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes scene-flash {
+    0% {
+      opacity: 0;
+      filter: brightness(3);
+    }
+    40% {
+      opacity: 1;
+      filter: brightness(1.8);
+    }
+    100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+  }
+  @keyframes scene-iris {
+    from {
+      opacity: 0;
+      clip-path: circle(12% at 50% 50%);
+    }
+    to {
+      opacity: 1;
+      clip-path: circle(85% at 50% 50%);
+    }
+  }
+  @keyframes scene-wipe {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  .caption {
+    margin: 0;
+    padding: 18px 22px 4px;
+    min-height: 4.4em;
+    font-size: clamp(1rem, 1.7vw, 1.32rem);
+    line-height: 1.55;
+    text-align: center;
+    text-wrap: balance;
+    color: var(--text);
+    text-shadow: 0 2px 14px rgb(0 0 0 / 70%);
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 6px 4px 0;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .icon.small {
+    width: 36px;
+    height: 36px;
+  }
+  .icon:hover {
+    background: var(--bg-soft);
+    transform: translateY(-1px);
+  }
+  .icon svg {
+    width: 55%;
+    height: 55%;
+    fill: currentColor;
+  }
+
+  /* One icon element per button; the state attribute decides which path shows. */
+  .icon .i-pause,
+  .icon .i-replay,
+  .icon .i-off {
+    display: none;
+  }
+  .icon[data-state='playing'] .i-play,
+  .icon[data-state='ended'] .i-play {
+    display: none;
+  }
+  .icon[data-state='playing'] .i-pause {
+    display: inline;
+  }
+  .icon[data-state='ended'] .i-replay {
+    display: inline;
+  }
+  .icon[data-state='muted'] .i-on {
+    display: none;
+  }
+  .icon[data-state='muted'] .i-off {
+    display: inline;
+  }
+
+  .time {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-width: 8.5ch;
+  }
+
+  .scrub {
+    flex: 1;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--accent) var(--progress), var(--line) var(--progress));
+    cursor: pointer;
+  }
+  .scrub::-webkit-slider-thumb {
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .scrub::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--bg);
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .badge {
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .badge.on {
+    color: var(--accent-2);
+    border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
+  }
+  .badge.off {
+    cursor: help;
+  }
+
+  @media (max-width: 640px) {
+    .bar {
+      flex-wrap: wrap;
+    }
+    .scrub {
+      order: 10;
+      flex-basis: 100%;
+    }
+  }
+</style>

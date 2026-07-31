@@ -1,0 +1,11 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  // `.claude/skills/**/assets` holds copy-to-start templates whose imports are
+  // written relative to `src/stories/`, not to where the file actually sits.
+  "exclude": ["dist", ".claude", "shots"],
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}

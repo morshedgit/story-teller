@@ -1,0 +1,145 @@
+---
+import Base from '../layouts/Base.astro';
+import { resolveStory, formatClock } from '../lib/timing';
+import { manifestFor, stories } from '../stories';
+
+const cards = stories.map((story) => {
+  const resolved = resolveStory(story, manifestFor(story.slug));
+  const opener = story.scenes[0];
+  return { story, resolved, opener };
+});
+---
+
+<Base title="Story Teller — narrated anime shorts">
+  <main id="main" class="wrap">
+    <header>
+      <p class="kicker">Story Teller</p>
+      <h1>Narrated anime shorts, drawn in SVG.</h1>
+      <p class="blurb">
+        Each story is a single typed file. A shared art kit draws the scenes, a shared player runs
+        the timeline, and the narration is pinned to the animation beat by beat.
+      </p>
+    </header>
+
+    {
+      cards.length === 0 ? (
+        <p class="empty">
+          No stories yet. Invoke the <code>anime-story</code> skill with a story and one will appear
+          in <code>src/stories/</code>.
+        </p>
+      ) : (
+        <ul class="grid">
+          {cards.map(({ story, resolved, opener }) => (
+            <li>
+              <a href={`/stories/${story.slug}/`}>
+                <div class="thumb">
+                  <svg viewBox="0 0 1600 900" role="img" aria-label={`Opening scene of ${story.title}`}>
+                    <g set:html={opener?.backdrop ?? ''} />
+                    {(opener?.layers ?? []).map((layer) => (
+                      <g
+                        transform={`translate(${layer.x ?? 0} ${layer.y ?? 0}) scale(${(layer.scale ?? 1) * (layer.flip ? -1 : 1)} ${layer.scale ?? 1})`}
+                        opacity={layer.opacity ?? 1}
+                        set:html={layer.svg}
+                      />
+                    ))}
+                  </svg>
+                </div>
+                <div class="body">
+                  <h2>{story.title}</h2>
+                  <p>{story.logline}</p>
+                  <p class="stats">
+                    {formatClock(resolved.duration)} · {resolved.scenes.length} scenes ·{' '}
+                    {resolved.hasAudio ? 'voiced' : 'captions only'}
+                  </p>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </main>
+</Base>
+
+<style>
+  main {
+    padding: 70px 24px 100px;
+  }
+  header {
+    max-width: 68ch;
+    margin-bottom: 48px;
+  }
+  .kicker {
+    margin: 0 0 10px;
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+  }
+  .blurb {
+    color: var(--text-dim);
+    font-size: 1.06rem;
+    margin-top: 14px;
+  }
+  .empty {
+    color: var(--text-dim);
+    padding: 40px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    text-align: center;
+  }
+  .empty code {
+    color: var(--accent);
+  }
+
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 22px;
+  }
+  .grid a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .grid a:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  }
+  .thumb {
+    aspect-ratio: 16 / 9;
+    background: #05070f;
+  }
+  .thumb svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .body {
+    padding: 16px 18px 20px;
+  }
+  .body h2 {
+    font-size: 1.25rem;
+  }
+  .body p {
+    margin: 7px 0 0;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+  }
+  .stats {
+    font-size: 0.78rem !important;
+    opacity: 0.7;
+    margin-top: 10px !important;
+  }
+</style>

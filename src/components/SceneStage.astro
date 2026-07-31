@@ -1,0 +1,49 @@
+---
+/**
+ * One scene, rendered as an SVG group.
+ *
+ * Layer positioning lives on an outer `<g transform>` (an SVG attribute) while cue
+ * animation lives on the inner `[data-layer]` element (a CSS transform). Keeping
+ * them on separate elements is deliberate: a CSS `transform` overrides the SVG
+ * `transform` attribute on the same element, so sharing one would make every
+ * animated layer snap to the origin the moment its first cue was applied.
+ */
+import type { Scene } from '../lib/story';
+import { palette } from '../lib/anime-kit';
+
+interface Props {
+  scene: Scene;
+  index: number;
+}
+
+const { scene, index } = Astro.props;
+const p = palette(scene.palette);
+const layers = [...(scene.layers ?? [])].sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+---
+
+<g data-scene={index} data-active={index === 0 ? 'true' : 'false'} data-transition={scene.transition ?? 'fade'}>
+  <g data-camera>
+    <g data-part="backdrop" set:html={scene.backdrop} />
+
+    {
+      layers.map((layer) => (
+        <g
+          transform={`translate(${layer.x ?? 0} ${layer.y ?? 0}) scale(${(layer.scale ?? 1) * (layer.flip ? -1 : 1)} ${layer.scale ?? 1})`}
+        >
+          <g data-layer={layer.id} style={`opacity:${layer.opacity ?? 1}`}>
+            <g class={layer.ambient ?? undefined} set:html={layer.svg} />
+          </g>
+        </g>
+      ))
+    }
+
+    {(scene.fx ?? []).map((effect) => <g data-part="fx" set:html={effect} />)}
+
+    {/* Scene-wide colour wash. Binds flat characters into the painted background. */}
+    <rect x="0" y="0" width="1600" height="900" fill={p.tint} opacity={p.tintOpacity} style="pointer-events:none" />
+  </g>
+
+  {/* Full-frame flash, driven by `flash` cues. Outside the camera so a push-in
+      cannot scale the flash away from the frame edges. */}
+  <rect data-flash x="0" y="0" width="1600" height="900" fill="var(--flash-color, #ffffff)" opacity="0" style="pointer-events:none" />
+</g>
