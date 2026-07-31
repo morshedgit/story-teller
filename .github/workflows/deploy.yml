@@ -27,9 +27,13 @@ jobs:
     name: Deploy to Cloudflare Workers
     needs: build
     runs-on: ubuntu-latest
-    # Skipped until the two secrets exist, so the workflow does not fail red on a
-    # fresh clone that has not been connected to a Cloudflare account yet.
-    if: github.event_name != 'pull_request'
+    # Job-level env, deliberately: a step's own `env:` block is not in scope for
+    # that same step's `if`, so guarding the publish step with a step-level env var
+    # would evaluate against nothing and skip forever — including after the secrets
+    # were added. Declared here, it is in scope where the guard needs it.
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,10 +43,14 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Report missing credentials
+        if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
+        run: |
+          echo "::notice::Skipping deploy — set the CLOUDFLARE_API_TOKEN and" \
+               "CLOUDFLARE_ACCOUNT_ID repository secrets to publish."
+
       - name: Publish
-        if: env.CLOUDFLARE_API_TOKEN != ''
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
