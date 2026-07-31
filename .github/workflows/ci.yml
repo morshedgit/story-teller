@@ -1,0 +1,46 @@
+name: CI
+
+# Checks only — this workflow does not deploy.
+#
+# Deployment is handled by Cloudflare Workers Builds, which watches this
+# repository directly and runs its own build + `npx wrangler deploy` on every
+# push. Publishing from here as well would mean two systems racing to deploy the
+# same commit, so this workflow's job is to fail fast on a broken commit and
+# leave shipping to Cloudflare.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Reads .nvmrc — the same file Cloudflare Workers Builds reads — so CI
+          # and the deploy build cannot silently drift onto different Node versions.
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Validates every story file against the Story type, and checks that every
+      # animation cue points at a layer that actually exists in its scene.
+      - run: npm run check
+
+      - run: npm run build
+
+      # Catches a broken wrangler.jsonc here rather than in the Cloudflare build,
+      # where the failure is slower to surface and harder to read.
+      - name: Validate Cloudflare config
+        run: npx wrangler deploy --dry-run

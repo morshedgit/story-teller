@@ -95,18 +95,41 @@ directory and the route and gallery pick it up.
 
 Static assets on Cloudflare Workers — no adapter, no server runtime.
 
+Deploys run through **Cloudflare Workers Builds**: Cloudflare watches this
+repository and builds on every push. There is no API token in this repo and no
+deploy step in CI, because two systems publishing the same commit would race.
+
+### Connecting it (once)
+
+In the Cloudflare dashboard: **Workers & Pages → Create → Import a repository**,
+pick `story-teller`, then set
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` (the default) |
+| Root directory | `/` |
+| Branch | `main` |
+
+The Node version comes from `.nvmrc`, which Workers Builds reads automatically —
+it takes priority over any dashboard variable, so CI and the deploy build stay on
+the same version.
+
+> **Name the Worker `story-teller`.** `wrangler deploy` takes its target from the
+> `name` field in `wrangler.jsonc`, not from what the dashboard called the app. If
+> those disagree you get two Workers: an empty one from the dashboard and the real
+> one from the deploy. Either match the name or edit `wrangler.jsonc`.
+
+`.github/workflows/ci.yml` typechecks, builds and validates `wrangler.jsonc` on
+pushes and pull requests, so a broken commit fails in GitHub before Cloudflare
+tries to ship it.
+
+### Deploying by hand
+
 ```bash
-npx wrangler deploy --dry-run    # validate config without credentials
+npx wrangler deploy --dry-run    # validate config, no credentials needed
 npm run deploy                   # build + publish
 ```
-
-`.github/workflows/deploy.yml` typechecks and builds on every push, and publishes
-from `main` once these repository secrets exist:
-
-- `CLOUDFLARE_API_TOKEN` — with the *Edit Cloudflare Workers* template
-- `CLOUDFLARE_ACCOUNT_ID`
-
-Until then the publish step is skipped rather than failing.
 
 ## Visual QA
 
