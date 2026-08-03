@@ -13,7 +13,8 @@
     "check": "astro check",
     "narrate": "node scripts/narrate.mjs",
     "shoot": "node scripts/shoot.mjs",
-    "deploy": "astro build && wrangler deploy"
+    "deploy": "astro build && wrangler deploy",
+    "standalone": "node scripts/standalone.mjs"
   },
   "dependencies": {
     "astro": "^7.1.6"
