@@ -445,11 +445,23 @@ export function kitchen(opts: BackdropOptions & { palette: PaletteName }): strin
     ${group({ 'data-part': 'pendants' }, pendants)}`;
 }
 
+export interface DiningRoomOptions extends BackdropOptions {
+  palette: PaletteName;
+  /**
+   * Omit one of the three tables — 0 near left, 1 under the window, 2 far right.
+   *
+   * Backdrops draw behind every layer, so a character placed at a table is drawn
+   * *over* it and reads as standing in front of the furniture. To seat someone,
+   * clear their slot here and stage `props.diningTable()` as a layer after them.
+   */
+  clearTable?: 0 | 1 | 2;
+}
+
 /**
  * Small dining room: warm wall, a window onto the night, tables and chairs.
  * Use it for the other side of the kitchen door.
  */
-export function diningRoom(opts: BackdropOptions & { palette: PaletteName }): string {
+export function diningRoom(opts: DiningRoomOptions): string {
   const [p, , seed] = resolve(opts, 'night');
   const random = rng(seed);
   const floorY = 620;
@@ -457,19 +469,30 @@ export function diningRoom(opts: BackdropOptions & { palette: PaletteName }): st
   const pane = uid('pane');
 
   // Tables recede: the far one is smaller and higher in frame.
+  //
+  // Heights are set against the character rig, which is 442 units tall. A dining
+  // table is a little under half a standing person, so the top sits ~200 above its
+  // own base. Anything much shorter reads as a footstool once someone stands next
+  // to it — which is exactly how this room first shipped.
   const tables = times(3, (i) => {
+    if (i === opts.clearTable) return '';
     const x = 250 + i * 560;
     const s = round(0.72 + i * 0.14);
     const y = floorY + 130 + i * 46;
     return `<g transform="translate(${x} ${y}) scale(${s})">
-      <ellipse cx="0" cy="4" rx="132" ry="20" fill="${p.floorShade}" opacity="0.55"/>
-      <rect x="-158" y="-168" width="24" height="168" rx="8" fill="${p.floorShade}"/>
-      <rect x="-158" y="-186" width="24" height="30" rx="8" fill="${p.wallShade}"/>
-      <rect x="-14" y="-104" width="28" height="104" fill="${p.floorShade}"/>
-      <ellipse cx="0" cy="-104" rx="128" ry="26" fill="${p.wall}"/>
-      <ellipse cx="0" cy="-104" rx="128" ry="26" fill="none" stroke="${p.ink}" stroke-width="3" opacity="0.4"/>
-      <ellipse class="k-pulse" style="--d:-${round(random() * 4)}s;--t:5s" cx="0" cy="-128" rx="13" ry="19" fill="${p.glow}" opacity="0.95"/>
-      <ellipse cx="0" cy="-112" rx="9" ry="4" fill="${p.accent}"/>
+      <ellipse cx="0" cy="4" rx="150" ry="24" fill="${p.floorShade}" opacity="0.55"/>
+      <rect x="-186" y="-306" width="26" height="190" rx="9" fill="${p.floorShade}"/>
+      <rect x="-186" y="-322" width="26" height="28" rx="9" fill="${p.wallShade}"/>
+      <rect x="-214" y="-134" width="74" height="19" rx="8" fill="${p.floorShade}"/>
+      <rect x="-202" y="-118" width="13" height="118" rx="6" fill="${p.floorShade}"/>
+      <rect x="-158" y="-118" width="13" height="118" rx="6" fill="${p.floorShade}"/>
+      <rect x="-16" y="-200" width="32" height="200" rx="9" fill="${p.floorShade}"/>
+      <ellipse cx="0" cy="-12" rx="62" ry="15" fill="${p.floorShade}"/>
+      <ellipse cx="0" cy="-193" rx="132" ry="27" fill="${p.ink}" opacity="0.32"/>
+      <ellipse cx="0" cy="-200" rx="132" ry="27" fill="${p.wall}"/>
+      <ellipse cx="0" cy="-200" rx="132" ry="27" fill="none" stroke="${p.ink}" stroke-width="3" opacity="0.4"/>
+      <ellipse class="k-pulse" style="--d:-${round(random() * 4)}s;--t:5s" cx="0" cy="-228" rx="13" ry="19" fill="${p.glow}" opacity="0.95"/>
+      <ellipse cx="0" cy="-208" rx="9" ry="4" fill="${p.accent}"/>
     </g>`;
   });
 

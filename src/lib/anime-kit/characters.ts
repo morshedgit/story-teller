@@ -575,6 +575,28 @@ export const props = {
     </g>`;
   },
 
+  /**
+   * A round dining table with a candle, at the same scale as the rig (top ~200
+   * above the floor, a little under half a standing character).
+   *
+   * Origin bottom-centre at the floor. Place it as a layer *after* the character
+   * you want seated at it, and clear that slot in the backdrop with
+   * `diningRoom({ clearTable: n })`. A table drawn behind someone reads as them
+   * standing in front of furniture, which is the whole reason this exists.
+   */
+  diningTable(top = '#b39189', leg = '#96736f', ink = '#241c36'): string {
+    return `<g data-part="dining-table">
+      <ellipse cx="0" cy="-4" rx="168" ry="28" fill="${ink}" opacity="0.2"/>
+      <rect x="-18" y="-198" width="36" height="198" rx="10" fill="${leg}"/>
+      <ellipse cx="0" cy="-14" rx="74" ry="17" fill="${leg}"/>
+      <ellipse cx="0" cy="-190" rx="156" ry="32" fill="${ink}" opacity="0.34"/>
+      <ellipse cx="0" cy="-198" rx="156" ry="32" fill="${top}"/>
+      <ellipse cx="0" cy="-198" rx="156" ry="32" fill="none" stroke="${ink}" stroke-width="3" opacity="0.4"/>
+      <rect x="-87" y="-252" width="18" height="46" rx="5" fill="#f6efdd"/>
+      <ellipse class="k-pulse" style="--t:5s" cx="-78" cy="-268" rx="11" ry="17" fill="#ffcf7a" opacity="0.95"/>
+    </g>`;
+  },
+
   /** A finished plate — the thing a chef carries. Origin bottom-centre. */
   dish(plate = '#f4efe4', food = '#f0c674', ink = '#2b2340'): string {
     return `<g data-part="dish">

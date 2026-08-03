@@ -57,10 +57,29 @@ system and getting it wrong is the most common defect in a new story.
 | `ocean({ palette })` | Sea from a cliff | **730–780**, only `x < 500` | Cliff is bottom-left only |
 | `platform({ palette })` | Railway platform | **786** | Deck at y=750. Posts at x≈128, 408, 688, 968, 1248 |
 | `room({ palette })` | Tatami interior | **790–830** | Window at x 880–1440 |
+| `kitchen({ palette })` | Restaurant kitchen | **790** | Pass at y=600, floor at y=700. Burners at x≈150–432 |
+| `diningRoom({ palette, clearTable? })` | Front of house | **812** | Window at x 580–1020. Tables at x=250, 810, 1370 |
 | `shrine({ palette })` | Steps under torii | **860–880** | Climbing shots |
 | `voidField({ palette })` | Flat radial field | anywhere | Title cards, blackouts, abstract beats |
 
 For `platform`, hang a lantern at `x: 976, y: 470` to sit on the third post.
+
+For `kitchen`, stand a stockpot at `y: 646` so it sits **on** a burner rather than
+on the floor.
+
+**To seat someone at a table**, clear that table's slot and stage your own in front
+of them — `diningRoom({ clearTable: 1 })` drops the table under the window, then:
+
+```ts
+layers: [
+  { id: 'guest', svg: guest({ pose: 'sit' }), x: 806, y: 762 },
+  { id: 'table', svg: props.diningTable(), x: 806, y: 812, scale: 0.92 },
+]
+```
+
+Order matters. Backdrops draw behind every layer, so a character placed at a
+backdrop table is drawn *over* it and reads as standing in front of furniture. The
+table has to be a layer, and it has to come after them.
 
 ---
 
@@ -129,6 +148,13 @@ All origin bottom-centre, like characters.
 | `props.bird(ink?)` | Wings flap automatically. Use 2–3 at small scale |
 | `props.letter(paper?, ink?)` | Folded paper |
 | `props.trainCar(body?, glass?, ink?)` | ~720 wide at scale 1. Windows flicker |
+| `props.stockpot(body?, ink?)` | Steams on its own. In `kitchen`, place at `y: 646` |
+| `props.dish(plate?, food?, ink?)` | A finished plate. Fade it in on the beat it lands |
+| `props.diningTable(top?, leg?, ink?)` | Top ~200 above `y`, candle off-centre at x−78. See the seating note above |
+
+Props are drawn at the same scale as characters — the rig is 442 units tall, so a
+table top at ~200 is a little under half a standing figure. If a prop looks like
+doll furniture next to a character, it is the prop that is wrong, not the scale.
 
 ---
 

@@ -489,30 +489,34 @@ export default defineStory({
       id: 'nana',
       palette: 'dusk',
       transition: 'fade',
-      backdrop: diningRoom({ palette: 'dusk', seed: 'front-of-house' }),
+      // The window table is slot 1, so it is cleared and staged here instead: the
+      // guest sits, then the table is drawn in front of her.
+      backdrop: diningRoom({ palette: 'dusk', seed: 'front-of-house', clearTable: 1 }),
       layers: [
         {
           id: 'nana',
           svg: nana({ pose: 'sit', expression: 'smile', ink: '#241c36', rim: '#ffd9a0' }),
-          x: 1020,
-          y: DINING,
+          x: 806,
+          y: 762,
           ambient: 'k-breathe',
         },
+        { id: 'table', svg: props.diningTable('#b39189', '#96736f', '#241c36'), x: 806, y: 812, scale: 0.92 },
         {
           id: 'rin',
           svg: rin({ pose: 'stand', expression: 'sad', ink: '#241c36', rim: '#ffd9a0' }),
-          x: 560,
+          x: 420,
           y: DINING,
           scale: 1,
+          flip: true,
           ambient: 'k-breathe',
         },
-        { id: 'dish', svg: props.dish('#f4efe4', '#f6d97a', '#241c36'), x: 800, y: 700, scale: 1.1, opacity: 0 },
+        { id: 'dish', svg: props.dish('#f4efe4', '#f6d97a', '#241c36'), x: 876, y: 636, scale: 0.86, opacity: 0 },
       ],
       fx: [fireflies({ seed: 'candles', count: 14 }), vignette({ opacity: 0.34 })],
       beats: [
         {
           text: 'At the small table by the window, where she had always used to sit, was a woman who had not left her house in two years.',
-          cues: [{ target: 'camera', do: 'scale', to: 1.2, dur: 'scene', ease: 'soft' }],
+          cues: [{ target: 'camera', do: 'scale', to: 1.14, dur: 'scene', ease: 'soft' }],
         },
         {
           text: 'She looked at the plate, and then at Rin, and she nodded once.',

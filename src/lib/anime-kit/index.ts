@@ -37,6 +37,7 @@ export {
   shrine,
   voidField,
   type BackdropOptions,
+  type DiningRoomOptions,
   type SkyOptions,
 } from './backdrops';
 
