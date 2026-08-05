@@ -7,9 +7,12 @@
  * them on separate elements is deliberate: a CSS `transform` overrides the SVG
  * `transform` attribute on the same element, so sharing one would make every
  * animated layer snap to the origin the moment its first cue was applied.
+ *
+ * This component imports no art. It reads the tint straight off the palette the
+ * story supplied, which is what allows two stories to hold entirely different
+ * palettes with nothing shared between them.
  */
 import type { Scene } from '../lib/story';
-import { palette } from '../lib/anime-kit';
 
 interface Props {
   scene: Scene;
@@ -17,7 +20,6 @@ interface Props {
 }
 
 const { scene, index } = Astro.props;
-const p = palette(scene.palette);
 const layers = [...(scene.layers ?? [])].sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
 ---
 
@@ -40,7 +42,15 @@ const layers = [...(scene.layers ?? [])].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))
     {(scene.fx ?? []).map((effect) => <g data-part="fx" set:html={effect} />)}
 
     {/* Scene-wide colour wash. Binds flat characters into the painted background. */}
-    <rect x="0" y="0" width="1600" height="900" fill={p.tint} opacity={p.tintOpacity} style="pointer-events:none" />
+    <rect
+      x="0"
+      y="0"
+      width="1600"
+      height="900"
+      fill={scene.palette.tint}
+      opacity={scene.palette.tintOpacity}
+      style="pointer-events:none"
+    />
   </g>
 
   {/* Full-frame flash, driven by `flash` cues. Outside the camera so a push-in

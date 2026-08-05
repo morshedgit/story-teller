@@ -1,15 +1,19 @@
 /**
  * Story registry.
  *
- * Every `*.story.ts` in this directory is picked up automatically — adding a story
- * means adding one file and nothing else. No import list to update, no route to
- * register, no config to touch.
+ * Every `<slug>/story.ts` in this directory is picked up automatically — adding a
+ * story means adding one directory and nothing else. No import list to update, no
+ * route to register, no config to touch.
+ *
+ * A story is a directory rather than a single file because it owns its art: the
+ * storyboard sits next to the `art/` it draws from, and neither is reachable from
+ * any other story.
  */
 
 import type { Story } from '../lib/story';
 import type { AudioManifest } from '../lib/timing';
 
-const modules = import.meta.glob<{ default: Story }>('./*.story.ts', { eager: true });
+const modules = import.meta.glob<{ default: Story }>('./*/story.ts', { eager: true });
 
 /**
  * Generated narration manifests, keyed by slug.

@@ -1,16 +1,21 @@
 /**
- * Palettes.
+ * This story's palettes.
  *
- * Every scene picks one palette and every art builder reads its colours from it.
- * That single constraint is what keeps twenty independently authored stories
- * looking like they came from the same studio.
+ * Two, because this story is two scenes: `storm` for the night that goes wrong and
+ * `dawn` for the turn. The other four the stencil offers were dropped — an unused
+ * palette is just a colour nobody looks at.
  *
- * Anime backgrounds get gradients and atmosphere; characters stay flat with one
- * shadow tone. Keep that split — flat characters against a soft sky is the whole
- * look.
+ * Every builder in this folder reads its colours from here, which is what keeps the
+ * two scenes looking like the same film. Backgrounds get gradients and atmosphere;
+ * characters stay flat with one shadow tone. Keep that split — flat characters
+ * against a soft ground is the whole look.
+ *
+ * Names are local to this story. The engine only reads `name`, `tint` and
+ * `tintOpacity` (see `ScenePalette` in `src/lib/story.ts`), which this satisfies
+ * structurally. Rename these, repaint them, invent new ones: nothing else is
+ * affected, and no other story can see them.
  */
-
-import type { PaletteName } from '../story';
+export type PaletteName = 'dawn' | 'storm';
 
 export interface Palette {
   name: PaletteName;
@@ -75,75 +80,6 @@ export const PALETTES: Record<PaletteName, Palette> = {
     paper: '#fff4e6',
     hasStars: false,
   },
-  day: {
-    name: 'day',
-    sky: ['#4f9ee8', '#95cdf2', '#dcf0fb'],
-    glow: '#ffffff',
-    glowSoft: '#fff8d8',
-    haze: '#e8f6ff',
-    far: '#a9cfe0',
-    mid: '#6fa8ad',
-    near: '#4a7f78',
-    ground: '#7cb36a',
-    groundShade: '#5b8f52',
-    wall: '#e6e1d6',
-    wallShade: '#cdc6b8',
-    floor: '#a49d93',
-    floorShade: '#8b857c',
-    ink: '#33384f',
-    rim: '#ffffff',
-    accent: '#ff7a6b',
-    tint: '#bfe6ff',
-    tintOpacity: 0.06,
-    paper: '#f4fbff',
-    hasStars: false,
-  },
-  dusk: {
-    name: 'dusk',
-    sky: ['#2d2a63', '#8b4a7d', '#f0a05a'],
-    glow: '#ffe9b0',
-    glowSoft: '#ffb15e',
-    haze: '#ffb877',
-    far: '#7a5f8a',
-    mid: '#4e3d64',
-    near: '#2e2442',
-    ground: '#3a2c4d',
-    groundShade: '#251c33',
-    wall: '#b39189',
-    wallShade: '#96736f',
-    floor: '#6f5a5e',
-    floorShade: '#5a464b',
-    ink: '#241c36',
-    rim: '#ffd9a0',
-    accent: '#ff8f5e',
-    tint: '#ff9c5c',
-    tintOpacity: 0.16,
-    paper: '#fff1dd',
-    hasStars: false,
-  },
-  night: {
-    name: 'night',
-    sky: ['#0b1030', '#1a2456', '#3d4a83'],
-    glow: '#eaf2ff',
-    glowSoft: '#9fb8ff',
-    haze: '#5468a8',
-    far: '#39457a',
-    mid: '#232c55',
-    near: '#141a36',
-    ground: '#1b2242',
-    groundShade: '#0e1228',
-    wall: '#3b4362',
-    wallShade: '#2c3350',
-    floor: '#282e46',
-    floorShade: '#1c2136',
-    ink: '#0d1128',
-    rim: '#bcd2ff',
-    accent: '#7fe6d8',
-    tint: '#5f7bd6',
-    tintOpacity: 0.18,
-    paper: '#e8eeff',
-    hasStars: true,
-  },
   storm: {
     name: 'storm',
     sky: ['#2b3038', '#454d5a', '#6d7683'],
@@ -165,29 +101,6 @@ export const PALETTES: Record<PaletteName, Palette> = {
     tint: '#7d8b9c',
     tintOpacity: 0.2,
     paper: '#eef2f7',
-    hasStars: false,
-  },
-  memory: {
-    name: 'memory',
-    sky: ['#d9c3a0', '#ecd9bb', '#f7ecd8'],
-    glow: '#fffdf5',
-    glowSoft: '#f6e3bd',
-    haze: '#f3e4c9',
-    far: '#c3ae90',
-    mid: '#a3907a',
-    near: '#7d6d5c',
-    ground: '#b3a186',
-    groundShade: '#93816b',
-    wall: '#ded1ba',
-    wallShade: '#c4b498',
-    floor: '#a89881',
-    floorShade: '#8f7f6a',
-    ink: '#544632',
-    rim: '#fffaf0',
-    accent: '#c98f6a',
-    tint: '#d8bd90',
-    tintOpacity: 0.22,
-    paper: '#fffaf0',
     hasStars: false,
   },
 };

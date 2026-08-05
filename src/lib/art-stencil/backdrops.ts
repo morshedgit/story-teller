@@ -10,9 +10,8 @@
  * anime background trick there is, and it costs almost no markup.
  */
 
-import type { PaletteName } from '../story';
-import { palette, type Palette } from './palette';
-import { FRAME, HORIZON, group, ridgePath, ridgePoints, rng, round, seedFrom, times, uid } from './svg';
+import type { Palette } from './palette';
+import { FRAME, HORIZON, group, ridgePath, ridgePoints, rng, round, seedFrom, times, uid } from '../svg';
 
 export interface SkyOptions {
   /** Seed for star/cloud placement. Same seed, same sky. */
@@ -126,17 +125,24 @@ function ground(p: Palette, horizon: number, color = p.ground): string {
 // ---------------------------------------------------------------------------
 
 export interface BackdropOptions extends SkyOptions {
-  palette?: PaletteName;
+  /**
+   * The palette object itself, not a name.
+   *
+   * Builders take the object so a story passes the same `P.dusk` it puts on the
+   * scene — one import, no name-to-object lookup table, and no global registry of
+   * palette names for a story to have to be a member of.
+   */
+  palette: Palette;
 }
 
-function resolve(opts: BackdropOptions, fallback: PaletteName): [Palette, number, number] {
-  const p = palette(opts.palette ?? fallback);
+function resolve(opts: BackdropOptions): [Palette, number, number] {
+  const p = opts.palette;
   return [p, opts.horizon ?? HORIZON, seedFrom(opts.seed ?? `${p.name}-bg`)];
 }
 
 /** Layered mountain ridges receding into haze. The workhorse exterior. */
-export function ridge(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'dusk');
+export function ridge(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const far = rng(seed);
   const mid = rng(seed + 11);
   const near = rng(seed + 23);
@@ -149,8 +155,8 @@ export function ridge(opts: BackdropOptions & { palette: PaletteName }): string 
 }
 
 /** Open grass hills with a footpath running to the horizon. */
-export function field(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'day');
+export function field(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const far = rng(seed);
   const random = rng(seed + 31);
 
@@ -169,8 +175,8 @@ export function field(opts: BackdropOptions & { palette: PaletteName }): string 
 }
 
 /** Dense treeline with light filtering through. Good for quiet or tense interiors of nature. */
-export function forest(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'night');
+export function forest(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const random = rng(seed);
 
   // Trunks need real mass, or a night forest reads as a picket fence.
@@ -192,8 +198,8 @@ export function forest(opts: BackdropOptions & { palette: PaletteName }): string
 }
 
 /** City skyline with lit windows. Windows flicker on a seeded schedule. */
-export function city(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'night');
+export function city(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const random = rng(seed);
 
   let x = -60;
@@ -226,8 +232,8 @@ export function city(opts: BackdropOptions & { palette: PaletteName }): string {
 }
 
 /** Sea horizon seen from a cliff edge, with a moving light band on the water. */
-export function ocean(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'dawn');
+export function ocean(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const random = rng(seed);
   const discX = opts.disc === false ? 1180 : (opts.disc ?? 1180);
 
@@ -253,8 +259,8 @@ export function ocean(opts: BackdropOptions & { palette: PaletteName }): string 
 }
 
 /** Country railway platform: canopy posts, rails, and a fence line. */
-export function platform(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'dusk');
+export function platform(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const random = rng(seed);
 
   // Canopy posts must reach the platform surface, not stop at the horizon, or they
@@ -290,8 +296,8 @@ export function platform(opts: BackdropOptions & { palette: PaletteName }): stri
 }
 
 /** Tatami room with a window. The only interior; keeps indoor scenes consistent. */
-export function room(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p] = resolve(opts, 'memory');
+export function room(opts: BackdropOptions): string {
+  const [p] = resolve(opts);
   const light = uid('win');
   const floorY = 640;
 
@@ -319,8 +325,8 @@ export function room(opts: BackdropOptions & { palette: PaletteName }): string {
 }
 
 /** Shrine steps under torii gates — the archetypal "climb toward something" shot. */
-export function shrine(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, horizon, seed] = resolve(opts, 'dusk');
+export function shrine(opts: BackdropOptions): string {
+  const [p, horizon, seed] = resolve(opts);
   const random = rng(seed);
 
   // Each step insets by 26 a side, so past i=14 the width goes negative and the
@@ -370,8 +376,8 @@ export function shrine(opts: BackdropOptions & { palette: PaletteName }): string
  * The pass sits behind the ground line, so a character stands in front of it rather
  * than being sliced in half by it.
  */
-export function kitchen(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p, , seed] = resolve(opts, 'day');
+export function kitchen(opts: BackdropOptions): string {
+  const [p, , seed] = resolve(opts);
   const random = rng(seed);
   const passY = 600;
   const floorY = 700;
@@ -446,7 +452,6 @@ export function kitchen(opts: BackdropOptions & { palette: PaletteName }): strin
 }
 
 export interface DiningRoomOptions extends BackdropOptions {
-  palette: PaletteName;
   /**
    * Omit one of the three tables — 0 near left, 1 under the window, 2 far right.
    *
@@ -462,7 +467,7 @@ export interface DiningRoomOptions extends BackdropOptions {
  * Use it for the other side of the kitchen door.
  */
 export function diningRoom(opts: DiningRoomOptions): string {
-  const [p, , seed] = resolve(opts, 'night');
+  const [p, , seed] = resolve(opts);
   const random = rng(seed);
   const floorY = 620;
   const glow = uid('warm');
@@ -538,8 +543,8 @@ export function diningRoom(opts: DiningRoomOptions): string {
 }
 
 /** Flat colour field. For abstract beats, blackouts and title cards. */
-export function voidField(opts: BackdropOptions & { palette: PaletteName }): string {
-  const [p] = resolve(opts, 'night');
+export function voidField(opts: BackdropOptions): string {
+  const [p] = resolve(opts);
   const g = uid('void');
   return `
     <defs>

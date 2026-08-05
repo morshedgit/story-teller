@@ -10,7 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check",
+    "check": "astro check && node scripts/check-isolation.mjs",
     "narrate": "node scripts/narrate.mjs",
     "shoot": "node scripts/shoot.mjs",
     "deploy": "astro build && wrangler deploy",

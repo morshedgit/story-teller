@@ -9,17 +9,40 @@ scenes are plain SVG, CSS and the Web Animations API.
 
 ## How it works
 
-A story is **one file**: `src/stories/<slug>.story.ts`. It holds narration, art (as
-markup produced by the art kit) and animation cues. Everything else is shared:
+A story is **one directory**: `src/stories/<slug>/`, holding `story.ts` — narration,
+staging and animation cues — and `art/`, the palettes, backdrops, character rig, props
+and effects **that story owns**.
 
 | Piece | Where | What it does |
 |---|---|---|
-| Art kit | `src/lib/anime-kit/` | Palettes, backdrops, a character rig, props, effects. The reason twenty stories look like one library |
-| Types | `src/lib/story.ts` | `Story` / `Scene` / `Layer` / `Beat` / `Cue` |
+| A story's art | `src/stories/<slug>/art/` | Owned outright. Editing it cannot affect any other story |
+| Art stencil | `src/lib/art-stencil/` | The house style, as a thing to **copy from**. No story imports it |
+| SVG helpers | `src/lib/svg.ts` | Frame size, seeded RNG, markup helpers. Shared because none of it has a colour |
+| Types | `src/lib/story.ts` | `Story` / `Scene` / `Layer` / `Beat` / `Cue`. Imports no art |
 | Timeline | `src/lib/timing.ts` | Resolves a story to absolute seconds at **build time** |
 | Cue compiler | `src/scripts/animate.ts` | Cues → paused Web Animations |
 | Player | `src/scripts/player.ts` | One clock, audio sync, transport |
+| Isolation guard | `scripts/check-isolation.mjs` | Fails the build if a story imports the stencil or another story |
 | Skill | `.claude/skills/anime-story/` | How to turn prose into a storyboard |
+
+### Why art is copied, not shared
+
+A shared art library means editing story B can silently break story A. That is not
+hypothetical — fixing the dining tables for one story changed a scene in another, and
+neither the type system nor the build noticed.
+
+So art is **stamped, not imported**. Creating a story copies the stencil into its own
+`art/`, and it is then pruned to what that story actually stages. From that moment the
+story can repaint or redraw anything with no possibility of disturbing another.
+
+The cost is duplication: a genuine bug fixed in the stencil does not reach stories
+already made, and a rig fix must be applied per story. That is the right trade at this
+size — worth revisiting past roughly a dozen stories.
+
+The engine holds up its end: `src/lib/story.ts` describes only the *shape* a story must
+present (`ScenePalette` is three fields — `name`, `tint`, `tintOpacity`), and
+`SceneStage.astro` imports no art module at all. Two stories can hold entirely
+different palettes with no shared union to register in.
 
 ### The timing model
 
@@ -65,7 +88,7 @@ export ELEVENLABS_API_KEY=...     # preferred
 # or
 export OPENAI_API_KEY=...
 
-npm run narrate the-third-post-from-the-end
+npm run narrate last-ticket
 npm run build                     # picks up the real durations
 ```
 
@@ -77,19 +100,26 @@ regenerates one file rather than the whole story. Stale files are pruned.
 estimated timing; the player shows a `captions only` badge. Nothing in the story
 file changes when audio arrives.
 
-> Generated audio is committed. That is roughly 3–6 MB per five-minute story — fine
-> for a handful, but move `public/audio/` to R2 if the library grows past ~20.
+> Generated audio is committed. A 30-second story is a few hundred KB; a five-minute
+> one is 3–6 MB — fine for a handful, but move `public/audio/` to R2 past ~20.
 
 ## Adding a story
 
-Invoke the `anime-story` skill with your prose. It will read
+Invoke the `anime-story` skill with your prose. It reads
 `.claude/skills/anime-story/references/` for the schema, the art catalogue and the
-pacing budget, write the file, typecheck it, and screenshot every scene to check the
-staging.
+pacing budget, then writes the story, prunes its art, typechecks it, and screenshots
+every scene to check the staging. Stories default to **~30 seconds** — two scenes,
+about five beats — unless you ask for a length.
 
-By hand: copy `.claude/skills/anime-story/assets/story-template.story.ts` into
-`src/stories/`. Nothing needs registering — `src/stories/index.ts` globs the
-directory and the route and gallery pick it up.
+By hand:
+
+```bash
+cp -r .claude/skills/anime-story/assets/story-scaffold src/stories/<slug>
+```
+
+Then set the slug, prune `art/` to what you use, and write the scenes. Nothing needs
+registering — `src/stories/index.ts` globs for `*/story.ts`, and the route and gallery
+pick it up.
 
 ## Deployment
 

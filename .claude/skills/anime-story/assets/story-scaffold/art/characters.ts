@@ -14,7 +14,7 @@
  */
 
 import { CLOTH_COLORS, HAIR_COLORS, SKIN, type ClothColor, type HairColor } from './palette';
-import { round, times } from './svg';
+import { round, times } from '../../../lib/svg';
 
 export type HairStyle = 'short' | 'long' | 'ponytail' | 'bob' | 'spiky' | 'messy' | 'bun';
 export type Outfit = 'uniform' | 'coat' | 'hoodie' | 'yukata' | 'apron' | 'dress';
