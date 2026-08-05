@@ -13,3 +13,7 @@ shots/
 
 # Single-file exports — regenerate with `npm run standalone <slug>`
 dist-standalone/
+
+# Local TTS voice models — hundreds of MB, re-downloaded on demand by
+# scripts/tts_local.py. The generated audio in public/audio/ IS committed.
+.tts-models/

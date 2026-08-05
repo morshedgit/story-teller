@@ -1,8 +1,8 @@
 # Story Teller
 
 Narrated anime shorts, drawn in SVG. Give the `anime-story` skill a story; get back
-a single committable file that renders as a ~5-minute animated short with timed
-captions and voice narration.
+a committable directory that renders as a ~30-second animated short with timed
+captions and voice narration — generated locally, with no API key.
 
 Astro, static output, deployed to Cloudflare Workers. No runtime framework — the
 scenes are plain SVG, CSS and the Web Animations API.
@@ -59,7 +59,7 @@ Where the clock comes from depends on whether narration exists:
 
 - **With audio** the playing `<audio>` element *is* the clock.
 - **Without audio** it advances on `requestAnimationFrame` against a reading-speed
-  estimate (`words / 2.6`).
+  estimate (`words / 4.1`, plus punctuation — fitted to real generated audio).
 
 Both paths run identical rendering code, so a story is watchable before any voice
 has been generated and stays correct once it has.
@@ -73,7 +73,7 @@ npm run check                # types + validates every cue target
 npm run build                # static dist/
 npm run preview
 
-npm run narrate <slug>       # generate narration audio (needs a TTS key)
+npm run narrate <slug>       # generate narration audio (no key needed)
 npm run shoot <slug>         # one PNG per scene -> shots/<slug>/
 npm run shoot kit            # art-kit contact sheet
 ```
@@ -84,24 +84,44 @@ transport bar.
 ## Narration
 
 ```bash
-export ELEVENLABS_API_KEY=...     # preferred
-# or
-export OPENAI_API_KEY=...
-
-npm run narrate last-ticket
+npm run narrate last-ticket       # no key, no account, no network
 npm run build                     # picks up the real durations
 ```
 
-Audio lands in `public/audio/<slug>/` as one MP3 per beat plus a `manifest.json` of
-measured durations. Beats are content-hashed, so re-running after a one-line edit
-regenerates one file rather than the whole story. Stale files are pruned.
+Narration is **generated on your machine** by default, with
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) and a neural voice model. There
+is no API key, no per-character cost and no quota, and nothing about the story leaves
+the box. The voice model (~65–300 MB) is downloaded once into `.tts-models/`
+(gitignored) and reused after that; `scripts/tts_local.py` does the synthesis and
+`scripts/narrate.mjs` encodes the result to MP3 in pure JavaScript.
 
-**No key is required.** Without one the site builds and plays with captions and
-estimated timing; the player shows a `captions only` badge. Nothing in the story
-file changes when audio arrives.
+| Env var | Effect |
+|---|---|
+| `TTS_LOCAL_MODEL` | Voice model directory name. Default `kokoro-en-v0_19` |
+| `ELEVENLABS_API_KEY` / `OPENAI_API_KEY` | Use that hosted provider instead |
+| `TTS_PROVIDER` | Force `local`, `elevenlabs` or `openai` |
+
+Audio lands in `public/audio/<slug>/` as one MP3 per beat plus a `manifest.json` of
+measured durations. Beats are content-hashed — including the voice — so re-running
+after a one-line edit regenerates one file rather than the whole story, while
+switching voices correctly regenerates all of them. Stale files are pruned.
+
+> **Hosted providers may be unreachable.** In sandboxes whose proxy allowlists
+> outbound hosts, `api.elevenlabs.io` and friends fail at CONNECT before a key
+> matters. The local driver is the one that always works.
 
 > Generated audio is committed. A 30-second story is a few hundred KB; a five-minute
 > one is 3–6 MB — fine for a handful, but move `public/audio/` to R2 past ~20.
+
+### Single-file export
+
+```bash
+npm run standalone last-ticket --with-audio
+```
+
+Folds the CSS, JS and narration into one HTML file that plays from `file://` with no
+server. `--with-audio` is required for a narrated story: the export refuses to write
+a file that would fetch its audio and play silently.
 
 ## Adding a story
 
@@ -109,7 +129,7 @@ Invoke the `anime-story` skill with your prose. It reads
 `.claude/skills/anime-story/references/` for the schema, the art catalogue and the
 pacing budget, then writes the story, prunes its art, typechecks it, and screenshots
 every scene to check the staging. Stories default to **~30 seconds** — two scenes,
-about five beats — unless you ask for a length.
+six or seven beats, about 100 words — unless you ask for a length.
 
 By hand:
 

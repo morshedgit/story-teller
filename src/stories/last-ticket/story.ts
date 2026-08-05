@@ -1,9 +1,9 @@
 /**
- * "The Last Ticket" — ~30 seconds, two scenes, five beats.
+ * "The Last Ticket" — ~30 seconds, two scenes, seven beats.
  *
  * A short piece, deliberately: at this length the whole thing can be re-cut in one
  * pass, which is what we want while the look is still being judged. The 5-minute
- * shape (14 scenes, 42 beats) is where this goes once the art is settled.
+ * shape is where this goes once the art is settled.
  *
  * All art comes from `./art`, which belongs to this story alone.
  */
@@ -57,13 +57,18 @@ export default defineStory({
           text: 'The fish came in wrong, the bread went black, and Mika dropped a plate at nine.',
           cues: [
             { target: 'camera', do: 'scale', to: 1.14, dur: 'scene', ease: 'soft' },
-            // The tremor lands on the plate, near the end of the line.
-            { target: 'camera', do: 'shake', strength: 9, at: 5.2, dur: 0.7 },
+            // The tremor lands on the word "plate". `at` is measured from the start
+            // of the beat, so it must stay inside the beat's real narration length —
+            // check it against the manifest after any edit to this line.
+            { target: 'camera', do: 'shake', strength: 9, at: 3.4, dur: 0.7 },
           ],
         },
         {
           text: 'By the time the last table left, she had stopped counting what it cost her.',
           cues: [{ target: 'mika', do: 'move', dy: 8, dur: 'beat', ease: 'soft' }],
+        },
+        {
+          text: 'She turned off the burners one by one, and did not turn on the lights.',
           hold: 0.5,
         },
       ],
@@ -99,6 +104,10 @@ export default defineStory({
         {
           text: 'Ten minutes after the door was locked, the printer woke with one more ticket.',
           cues: [{ target: 'camera', do: 'scale', to: 1.16, dur: 'scene', ease: 'soft' }],
+        },
+        {
+          // No cue: the hesitation is carried by the line and the held frame.
+          text: 'She almost left it in the tray. Her hand went to it out of habit.',
         },
         {
           text: 'Her mother’s order. She had driven four hours and had not called ahead.',
