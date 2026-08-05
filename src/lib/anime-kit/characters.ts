@@ -559,6 +559,56 @@ export const props = {
     return `<path class="k-flap" data-part="bird" d="M -16 0 q 8 -10 16 0 q 8 -10 16 0" stroke="${ink}" stroke-width="3.4" fill="none" stroke-linecap="round"/>`;
   },
 
+  /** Stockpot with rising steam. Origin bottom-centre. */
+  stockpot(body = '#4a5460', ink = '#2b2340'): string {
+    const steam = times(3, (i) => {
+      const x = -26 + i * 26;
+      return `<path class="k-drift" style="--d:-${i * 2.4}s;--t:5s" d="M ${x} -96 q 12 -26 0 -50 q -12 -24 0 -46"
+        stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round" opacity="${0.32 - i * 0.06}"/>`;
+    });
+    return `<g data-part="stockpot">
+      ${steam}
+      <path d="M -52 -92 L 52 -92 L 44 0 L -44 0 Z" fill="${body}"/>
+      <rect x="-60" y="-104" width="120" height="16" rx="7" fill="${ink}"/>
+      <rect x="-76" y="-84" width="20" height="10" rx="5" fill="${ink}"/>
+      <rect x="56" y="-84" width="20" height="10" rx="5" fill="${ink}"/>
+    </g>`;
+  },
+
+  /**
+   * A round dining table with a candle, at the same scale as the rig (top ~200
+   * above the floor, a little under half a standing character).
+   *
+   * Origin bottom-centre at the floor. Place it as a layer *after* the character
+   * you want seated at it, and clear that slot in the backdrop with
+   * `diningRoom({ clearTable: n })`. A table drawn behind someone reads as them
+   * standing in front of furniture, which is the whole reason this exists.
+   */
+  diningTable(top = '#b39189', leg = '#96736f', ink = '#241c36'): string {
+    return `<g data-part="dining-table">
+      <ellipse cx="0" cy="-4" rx="168" ry="28" fill="${ink}" opacity="0.2"/>
+      <rect x="-18" y="-198" width="36" height="198" rx="10" fill="${leg}"/>
+      <ellipse cx="0" cy="-14" rx="74" ry="17" fill="${leg}"/>
+      <ellipse cx="0" cy="-190" rx="156" ry="32" fill="${ink}" opacity="0.34"/>
+      <ellipse cx="0" cy="-198" rx="156" ry="32" fill="${top}"/>
+      <ellipse cx="0" cy="-198" rx="156" ry="32" fill="none" stroke="${ink}" stroke-width="3" opacity="0.4"/>
+      <rect x="-87" y="-252" width="18" height="46" rx="5" fill="#f6efdd"/>
+      <ellipse class="k-pulse" style="--t:5s" cx="-78" cy="-268" rx="11" ry="17" fill="#ffcf7a" opacity="0.95"/>
+    </g>`;
+  },
+
+  /** A finished plate — the thing a chef carries. Origin bottom-centre. */
+  dish(plate = '#f4efe4', food = '#f0c674', ink = '#2b2340'): string {
+    return `<g data-part="dish">
+      <ellipse cx="0" cy="-6" rx="66" ry="18" fill="${plate}"/>
+      <ellipse cx="0" cy="-10" rx="66" ry="18" fill="${plate}"/>
+      <ellipse cx="0" cy="-10" rx="66" ry="18" fill="none" stroke="${ink}" stroke-width="3"/>
+      <ellipse cx="0" cy="-14" rx="38" ry="11" fill="${food}"/>
+      <ellipse cx="-6" cy="-18" rx="16" ry="7" fill="#ffffff" opacity="0.5"/>
+      <path class="k-drift" style="--t:4.5s" d="M 0 -34 q 10 -20 0 -38" stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.35"/>
+    </g>`;
+  },
+
   /** Folded paper. Origin at the bottom-centre, like a character. */
   letter(paper = '#f6efdd', ink = '#2b2340'): string {
     return `<g data-part="letter">

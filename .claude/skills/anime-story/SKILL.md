@@ -144,10 +144,17 @@ Read these as needed — do not try to hold them in your head:
 npm run check              # types + every cue target resolves
 npm run shoot <slug>       # one PNG per scene -> shots/<slug>/
 npm run dev                # play it: space, arrows, n/p for scenes
+npm run standalone <slug>  # one self-contained .html -> dist-standalone/
 ```
 
 `npm run shoot` needs no configuration; it uses the repo's pinned Chromium. Never
 run `playwright install`.
+
+**Stills are not a substitute for watching it.** They cannot show pacing, and pacing
+is most of whether a story works. When the person you are building for cannot reach
+`npm run dev` — no public hostname, no deploy yet — `npm run standalone <slug>` folds
+the built page's CSS and JS into a single file they can open anywhere. Add `--embed`
+to strip the document skeleton for hosts that supply their own.
 
 The reference story `src/stories/the-third-post-from-the-end.story.ts` exercises the
 whole kit across 14 scenes — read it when you need a worked example of anything.

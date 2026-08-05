@@ -10,3 +10,6 @@ npm-debug.log*
 
 # Visual QA output — regenerate with `npm run shoot <slug>`
 shots/
+
+# Single-file exports — regenerate with `npm run standalone <slug>`
+dist-standalone/
