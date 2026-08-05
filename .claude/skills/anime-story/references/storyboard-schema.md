@@ -17,7 +17,7 @@ in `src/lib/timing.ts`.
 
 ```ts
 export default defineStory({
-  slug: 'quiet-morning',     // REQUIRED. Must equal the filename before `.story.ts`
+  slug: 'quiet-morning',     // REQUIRED. Must equal the story's directory name
   title: 'A Quiet Morning',
   logline: 'One sentence, shown on the gallery card.',
   credit: 'Optional byline',
@@ -35,9 +35,9 @@ export default defineStory({
 ```ts
 {
   id: 'opening',             // REQUIRED, unique. Used in audio filenames
-  palette: 'dusk',           // dawn | day | dusk | night | storm | memory
+  palette: P.dusk,           // REQUIRED. The palette OBJECT from this story's own art
   transition: 'fade',        // cut | fade | wipe | iris | flash. Default 'fade'
-  backdrop: ridge({ … }),    // SVG markup from an anime-kit builder
+  backdrop: ridge({ … }),    // SVG markup from a builder in this story's art/
   layers: [ /* … */ ],       // optional
   fx: [ sakura(), vignette() ],  // optional, painted above layers in order
   beats: [ /* … */ ],        // REQUIRED

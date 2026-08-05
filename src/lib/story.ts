@@ -1,14 +1,33 @@
 /**
  * Storyboard types.
  *
- * A story is one committable data file: `src/stories/<slug>.story.ts`. It holds
- * narration, art (as SVG markup produced by the anime-kit builders) and animation
- * cues. It holds no timing in milliseconds-since-page-load and no DOM code — the
- * build resolves it into an absolute timeline (see `src/lib/timing.ts`) and the
- * runtime player replays that timeline.
+ * A story is one committable directory: `src/stories/<slug>/`, holding `story.ts`
+ * and the story's own `art/`. `story.ts` holds narration, art (as SVG markup from
+ * that story's art builders) and animation cues. It holds no timing in
+ * milliseconds-since-page-load and no DOM code — the build resolves it into an
+ * absolute timeline (see `src/lib/timing.ts`) and the runtime player replays that
+ * timeline.
+ *
+ * Nothing here imports art. These types describe the *shape* a story must present
+ * to the engine; the story supplies the values from art it owns.
  */
 
-export type PaletteName = 'dawn' | 'day' | 'dusk' | 'night' | 'storm' | 'memory';
+/**
+ * The only part of a palette the engine touches.
+ *
+ * Palettes live in each story's own `art/palette.ts` and are far richer than this —
+ * sky gradients, ink, rim light, floor tones. None of that concerns the engine, so
+ * none of it is named here. A story's `Palette` satisfies this structurally, which
+ * is what lets two stories hold completely different palettes with no shared union
+ * to register in and no import from any art module.
+ */
+export interface ScenePalette {
+  /** Free-form; surfaces as a `data-palette` attribute for styling hooks. */
+  name: string;
+  /** Full-frame colour wash that binds flat characters into the background. */
+  tint: string;
+  tintOpacity: number;
+}
 
 /** Named easing curves. Keep this list short so stories stay visually coherent. */
 export type Ease = 'linear' | 'in' | 'out' | 'inOut' | 'soft' | 'snap' | 'anticipate';
@@ -77,7 +96,7 @@ export type CueAction = Cue['do'];
 export interface Layer {
   /** Stable id, targetable by cues. Unique within its scene. */
   id: string;
-  /** SVG markup, normally from an anime-kit builder. */
+  /** SVG markup, normally from one of this story's own art builders. */
   svg: string;
   /** Position of the layer origin in viewBox units (1600x900). Default 0,0. */
   x?: number;
@@ -112,11 +131,12 @@ export type Transition = 'cut' | 'fade' | 'wipe' | 'iris' | 'flash';
 export interface Scene {
   /** Stable id, unique within the story. Used in audio filenames. */
   id: string;
-  palette: PaletteName;
-  /** Backdrop SVG markup, from `src/lib/anime-kit/backdrops.ts`. */
+  /** This story's own palette object, from `./art/palette.ts`. */
+  palette: ScenePalette;
+  /** Backdrop SVG markup, from this story's `art/backdrops.ts`. */
   backdrop: string;
   layers?: Layer[];
-  /** Foreground effect SVG markup, from `src/lib/anime-kit/fx.ts`. Drawn above layers. */
+  /** Foreground effect SVG markup, from this story's `art/fx.ts`. Drawn above layers. */
   fx?: string[];
   beats: Beat[];
   /** How this scene arrives from the previous one. Default `'fade'`. */

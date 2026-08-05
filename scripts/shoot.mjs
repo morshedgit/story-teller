@@ -2,7 +2,7 @@
 /**
  * Visual QA.
  *
- *   npm run shoot kit             -> full art-kit contact sheet
+ *   npm run shoot kit             -> full art-stencil contact sheet
  *   npm run shoot <slug>          -> one PNG per scene of a story
  *   npm run shoot <slug> --sheet  -> a single stacked contact sheet instead
  *

@@ -9,7 +9,7 @@
  * cut-in) belongs in a cue, not here.
  */
 
-import { FRAME, rng, round, seedFrom, times } from './svg';
+import { FRAME, rng, round, seedFrom, times } from '../svg';
 
 export interface FxOptions {
   seed?: string;

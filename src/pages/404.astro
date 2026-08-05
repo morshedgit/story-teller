@@ -1,13 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
-import { ridge, props } from '../lib/anime-kit';
+import { PALETTES, ridge, props } from '../lib/art-stencil';
 ---
 
 <Base title="Not found — Story Teller">
   <main id="main" class="wrap">
     <div class="art">
       <svg viewBox="0 0 1600 900" role="presentation">
-        <g set:html={ridge({ palette: 'night', seed: 'lost', disc: 1240, discY: 200 })} />
+        <g set:html={ridge({ palette: PALETTES.night, seed: 'lost', disc: 1240, discY: 200 })} />
         <g transform="translate(760 720)" set:html={props.lantern('#ffcf7a', '#0d1128')} />
       </svg>
     </div>

@@ -1,11 +1,15 @@
 ---
 /**
- * Art-kit contact sheet.
+ * Art-stencil contact sheet.
  *
- * Not part of any story — this is the visual QA surface for the kit itself.
+ * Not part of any story — this is the visual QA surface for the house style itself.
  * Every backdrop, every hair style, every pose and every effect renders here, so a
- * change to `anime-kit` can be eyeballed in one screenshot before it reaches a
- * story. Screenshot it with `npm run shoot kit`.
+ * change to `src/lib/art-stencil/` can be eyeballed in one screenshot before any
+ * story is stamped from it. Screenshot it with `npm run shoot kit`.
+ *
+ * Because stories own copies rather than importing this, a change here reaches only
+ * stories made *after* it. This page shows what the next story will start from, not
+ * what existing stories look like.
  */
 import Base from '../layouts/Base.astro';
 import {
@@ -18,7 +22,7 @@ import {
   lightRays,
   mist,
   ocean,
-  palette,
+  PALETTES,
   platform,
   props,
   rain,
@@ -32,22 +36,22 @@ import {
   speedLines,
   vignette,
   voidField,
-} from '../lib/anime-kit';
-import type { Expression, HairStyle, Outfit, PoseName } from '../lib/anime-kit';
+} from '../lib/art-stencil';
+import type { Expression, HairStyle, Outfit, PoseName } from '../lib/art-stencil';
 
 const backdrops: Array<[string, string]> = [
-  ['ridge / dusk', ridge({ palette: 'dusk' })],
-  ['ridge / dawn', ridge({ palette: 'dawn' })],
-  ['field / day', field({ palette: 'day' })],
-  ['forest / night', forest({ palette: 'night' })],
-  ['city / night', city({ palette: 'night' })],
-  ['ocean / dawn', ocean({ palette: 'dawn' })],
-  ['platform / dusk', platform({ palette: 'dusk' })],
-  ['room / memory', room({ palette: 'memory' })],
-  ['shrine / dusk', shrine({ palette: 'dusk' })],
-  ['ridge / storm', ridge({ palette: 'storm' })],
-  ['field / memory', field({ palette: 'memory' })],
-  ['void / night', voidField({ palette: 'night' })],
+  ['ridge / dusk', ridge({ palette: PALETTES.dusk })],
+  ['ridge / dawn', ridge({ palette: PALETTES.dawn })],
+  ['field / day', field({ palette: PALETTES.day })],
+  ['forest / night', forest({ palette: PALETTES.night })],
+  ['city / night', city({ palette: PALETTES.night })],
+  ['ocean / dawn', ocean({ palette: PALETTES.dawn })],
+  ['platform / dusk', platform({ palette: PALETTES.dusk })],
+  ['room / memory', room({ palette: PALETTES.memory })],
+  ['shrine / dusk', shrine({ palette: PALETTES.dusk })],
+  ['ridge / storm', ridge({ palette: PALETTES.storm })],
+  ['field / memory', field({ palette: PALETTES.memory })],
+  ['void / night', voidField({ palette: PALETTES.night })],
 ];
 
 const effects: Array<[string, string]> = [
@@ -68,7 +72,7 @@ const poses: PoseName[] = ['stand', 'walk', 'reach', 'point', 'slump', 'sit', 'b
 const outfits: Outfit[] = ['uniform', 'coat', 'hoodie', 'yukata', 'apron', 'dress'];
 const expressions: Expression[] = ['neutral', 'smile', 'sad', 'surprised', 'determined', 'closed', 'worried'];
 
-const p = palette('day');
+const p = PALETTES.day;
 const ink = p.ink;
 const rim = p.rim;
 
@@ -77,12 +81,13 @@ const figureBox = (svg: string) =>
   `<svg viewBox="0 0 300 520" role="img"><rect width="300" height="520" fill="#e9eef7"/><g transform="translate(150 500)">${svg}</g></svg>`;
 ---
 
-<Base title="Art kit preview">
+<Base title="Art stencil preview">
   <main id="main" class="wrap">
-    <h1>Art kit preview</h1>
+    <h1>Art stencil preview</h1>
     <p class="note">
-      Visual QA for <code>src/lib/anime-kit</code>. Every builder renders here so the kit can be
-      reviewed in one pass, independently of any story.
+      Visual QA for <code>src/lib/art-stencil</code> — the house style new stories are stamped
+      from. Every builder renders here so it can be reviewed in one pass. Stories own copies of
+      this art, so a change here reaches the next story, not the ones already made.
     </p>
 
     <h2>Close-up</h2>
@@ -114,7 +119,7 @@ const figureBox = (svg: string) =>
         effects.map(([label, svg]) => (
           <figure>
             <svg viewBox={`0 0 ${FRAME.w} ${FRAME.h}`} role="img" aria-label={label}>
-              <g set:html={ridge({ palette: 'dusk', seed: 'fx-bed' })} />
+              <g set:html={ridge({ palette: PALETTES.dusk, seed: 'fx-bed' })} />
               <g set:html={svg} />
             </svg>
             <figcaption>{label}</figcaption>

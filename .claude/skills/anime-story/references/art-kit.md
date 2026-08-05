@@ -1,6 +1,12 @@
-# Art kit catalogue
+# Art stencil catalogue
 
-Everything importable from `src/lib/anime-kit`. Frame is `1600 x 900` viewBox units.
+Everything the house style in `src/lib/art-stencil/` offers. Frame is `1600 x 900`
+viewBox units.
+
+**You copy from this, you do not import it.** The scaffold hands you the whole set in
+`src/stories/<slug>/art/`; this page is the menu for deciding what to keep and what to
+delete. Anything you need later can be copied in from the stencil the same way —
+importing it fails `npm run check`.
 
 - [Palettes](#palettes)
 - [Backdrops and ground lines](#backdrops-and-ground-lines)
@@ -25,13 +31,24 @@ full-frame colour wash that binds flat characters into the painted background.
 | `storm` | Desaturated slate | Grief, conflict, weather |
 | `memory` | Washed sepia and cream | Flashbacks. Pair with `transition: 'iris'` |
 
-Pass the palette's `ink` and `rim` to every character in that scene so they sit in
-the light — see the ground-line table for the values.
+These names are **local to your story** — the engine only ever reads `name`, `tint`
+and `tintOpacity`. Rename them, repaint them, delete the four you do not use, invent
+your own. Nothing outside your story's `art/palette.ts` knows they exist.
+
+Builders and scenes take the palette **object**, not its name, so there is one import
+and no lookup table:
 
 ```ts
-import { palette } from '../lib/anime-kit';
-const p = palette('dusk');   // p.ink, p.rim, p.accent, p.glow …
+import { PALETTES } from './art';
+const P = PALETTES;
+
+// in a scene:
+palette: P.dusk,
+backdrop: ridge({ palette: P.dusk, seed: 'opening' }),
 ```
+
+Pass the palette's `ink` and `rim` to every character in that scene so they sit in
+the light: `hero({ ink: P.dusk.ink, rim: P.dusk.rim })`.
 
 ---
 
@@ -198,15 +215,38 @@ Blinking is built into the character rig — do not add it.
 
 ---
 
-## Extending the kit
+## Pruning what you copied
 
-If a story needs something absent here, add it to the kit rather than inlining SVG
-into the story:
+Do this before staging, not after. Delete from your story's `art/` every palette,
+location, prop, effect and pose the story does not put on screen, and drop the
+matching entries from `index.ts`. TypeScript will point at anything you cut too
+deeply, so this is safe to be aggressive about.
 
-- a location → `src/lib/anime-kit/backdrops.ts`, and record its ground line here
-- a prop → the `props` object in `characters.ts`
-- an effect → `fx.ts`
-- a pose → the `POSES` table in `characters.ts` (joint positions, not paths)
+Two things make it more than tidying. A short film's art folder becomes small enough
+to read in one sitting, which is where you notice that a prop is at the wrong scale.
+And an option that can only take one value is worse than no option — if the story has
+one character, delete the `hair` and `outfit` parameters rather than leaving knobs
+that do nothing.
 
-Then re-export it from `index.ts`, run `npm run shoot kit`, and look at
-`shots/kit/kit.png` before using it in a story.
+`src/stories/last-ticket/` is the worked example: 1,698 copied lines down to 708 — two
+palettes, one location, two props, two effects, one hair style, one outfit.
+
+## Extending your story's art
+
+If the story needs something absent from your `art/`, **copy it in from
+`src/lib/art-stencil/`** and then change it freely. Never import the stencil, and never
+import another story's `art/` — `scripts/check-isolation.mjs` fails the build on both.
+
+If it is absent from the stencil too, add it to your own `art/` rather than inlining
+SVG into `story.ts`:
+
+- a location → your `art/backdrops.ts`
+- a prop → the `props` object in your `art/characters.ts`
+- an effect → your `art/fx.ts`
+- a pose → the `POSES` table in your `art/characters.ts` (joint positions, not paths)
+
+Then re-export it from your `art/index.ts` and `npm run shoot <slug>` to look at it.
+
+**If it is good enough to be the house style, put it in the stencil too** — a separate,
+deliberate edit to `src/lib/art-stencil/`, checked with `npm run shoot kit`. That is
+how the next story inherits it. It will not travel backwards into stories already made.

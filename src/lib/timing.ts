@@ -61,6 +61,8 @@ export interface ResolvedBeat {
 export interface ResolvedScene {
   id: string;
   index: number;
+  /** Palette *name* only. The resolved timeline is JSON shipped to the client, and
+   *  the colours are already baked into the server-rendered SVG. */
   palette: string;
   transition: Transition;
   start: number;
@@ -235,7 +237,7 @@ export function resolveStory(story: Story, manifest: AudioManifest | null): Reso
     scenes.push({
       id: scene.id,
       index: sceneIndex,
-      palette: scene.palette,
+      palette: scene.palette.name,
       transition: scene.transition ?? 'fade',
       start: sceneStart,
       dur: sceneDur,
