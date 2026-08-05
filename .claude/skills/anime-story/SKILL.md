@@ -52,10 +52,14 @@ break another, which is exactly what happened once and why this exists.
    **Actually read those images.** This step is not optional and not a formality —
    it is the only thing that catches a character standing in mid-air, buried under an
    effect, or cropped out of frame. Iterate until every scene reads.
-10. **Measure the runtime.** `window.__story.duration` is the resolved length. Word
-    count alone will undershoot it.
-11. **Narrate** (optional): `npm run narrate <slug>` if a TTS key is set. Without one
-    the story still plays with estimated timing — see "Narration" below.
+10. **Narrate**: `npm run narrate <slug>`. This needs no key and no network — see
+    "Narration" below. Do it *before* judging the runtime, because the estimate it
+    replaces can be off by a second or two per beat.
+11. **Measure the runtime and re-check the cues.** `window.__story.duration` is the
+    resolved length. Real audio moves every beat boundary, so a cue with an explicit
+    `at:` may now fire outside its beat — `at` counts from the beat's start, and the
+    beat's true length is in `public/audio/<slug>/manifest.json`. Re-run
+    `npm run shoot <slug>` after narrating.
 12. **Report** what you made: scene count, measured runtime, what you pruned, and
     anything you had to invent.
 
@@ -155,14 +159,19 @@ overlapping moves on one layer will fight.
 ## Narration
 
 One MP3 is generated per beat, so beat boundaries are exact and no timing offsets
-are ever maintained by hand. `npm run narrate <slug>` needs `ELEVENLABS_API_KEY`
-(preferred) or `OPENAI_API_KEY`; it content-hashes each beat, so re-running after a
-one-line edit regenerates one file, not forty.
+are ever maintained by hand. Beats are content-hashed, so re-running after a one-line
+edit regenerates one file, not forty.
 
-**With no key set, everything still works.** Durations fall back to a reading-speed
-estimate and the story plays with captions. Do not treat a missing key as a blocker,
-do not stub audio files, and do not change the story file to work around it — say
-plainly in your report that narration is pending a key.
+**`npm run narrate <slug>` needs no key, no account and no network.** It synthesises
+locally with sherpa-onnx, downloading a voice model on first use. Narration is a
+normal step of building a story, not an optional extra to defer — run it. Setting
+`ELEVENLABS_API_KEY` or `OPENAI_API_KEY` switches to that hosted provider, but those
+are unreachable from sandboxes behind an allowlist proxy, so do not reach for one
+when local synthesis fails; read the actual error instead.
+
+**Never stub or hand-edit audio files, and never change a story to work around a
+narration problem.** If synthesis genuinely cannot run, say so plainly in your report
+and leave the story on estimated timing — it still plays, with captions.
 
 ## Reference files
 
@@ -183,7 +192,7 @@ Read these as needed — do not try to hold them in your head:
 npm run check              # types + cue targets + story isolation
 npm run shoot <slug>       # one PNG per scene -> shots/<slug>/
 npm run dev                # play it: space, arrows, n/p for scenes
-npm run standalone <slug>  # one self-contained .html -> dist-standalone/
+npm run standalone <slug> --with-audio   # one self-contained .html
 ```
 
 `npm run shoot` needs no configuration; it uses the repo's pinned Chromium. Never
@@ -197,8 +206,10 @@ whose most important element you never looked at.
 **Stills are not a substitute for watching it.** They cannot show pacing, and pacing
 is most of whether a story works. When the person you are building for cannot reach
 `npm run dev` — no public hostname, no deploy yet — `npm run standalone <slug>` folds
-the built page's CSS and JS into a single file they can open anywhere. Add `--embed`
-to strip the document skeleton for hosts that supply their own.
+the built page's CSS and JS into a single file they can open anywhere. Pass
+`--with-audio` to fold the narration in too; without it the export of a narrated story
+fails rather than writing a file that plays silently. Add `--embed` to strip the
+document skeleton for hosts that supply their own.
 
 The reference story `src/stories/last-ticket/` is a worked 30-second example: two
-scenes, five beats, and an `art/` folder pruned to exactly what it uses.
+scenes, seven beats, and an `art/` folder pruned to exactly what it uses.

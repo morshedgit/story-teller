@@ -165,8 +165,19 @@ export function defineStory(story: Story): Story {
   return story;
 }
 
-/** Words per second for a narrator reading at an unhurried, storybook pace. */
-export const WORDS_PER_SECOND = 2.6;
+/**
+ * Words per second for a narrator reading at an unhurried, storybook pace.
+ *
+ * Calibrated against generated audio rather than guessed: fitted to the measured
+ * per-beat durations of the default local voice at the `local` driver's default 0.9
+ * speed. The original 2.6 was a third too slow, which made every story authored to a
+ * word budget come out markedly shorter than intended once it had a real voice.
+ *
+ * This is the words-only rate; the punctuation charges below are on top, and the
+ * combined figure works out at roughly 3.5 words per second — which is the number in
+ * the skill's pacing budget.
+ */
+export const WORDS_PER_SECOND = 4.1;
 
 /**
  * Estimate how long a narration line takes to read aloud.

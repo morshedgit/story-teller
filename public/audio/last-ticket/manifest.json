@@ -1,0 +1,43 @@
+{
+  "slug": "last-ticket",
+  "generatedAt": "2026-08-05T18:22:06.940Z",
+  "provider": "local",
+  "voiceId": "kokoro-en-v0_19",
+  "beats": {
+    "service.0": {
+      "file": "service.0.mp3",
+      "duration": 4.344,
+      "hash": "1c9892b4040fcf5d"
+    },
+    "service.1": {
+      "file": "service.1.mp3",
+      "duration": 4.272,
+      "hash": "efaf007fc157439e"
+    },
+    "service.2": {
+      "file": "service.2.mp3",
+      "duration": 3.744,
+      "hash": "c23050697c810cbb"
+    },
+    "ticket.0": {
+      "file": "ticket.0.mp3",
+      "duration": 4.128,
+      "hash": "e4a0685b77ec460f"
+    },
+    "ticket.1": {
+      "file": "ticket.1.mp3",
+      "duration": 4.056,
+      "hash": "0dcc6e6fbc8c2552"
+    },
+    "ticket.2": {
+      "file": "ticket.2.mp3",
+      "duration": 4.344,
+      "hash": "f864a47bd62ef22e"
+    },
+    "ticket.3": {
+      "file": "ticket.3.mp3",
+      "duration": 3,
+      "hash": "e6853cf9548a8d5f"
+    }
+  }
+}

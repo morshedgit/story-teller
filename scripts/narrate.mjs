@@ -15,30 +15,103 @@
  * cannot drift from the voice. It also means editing one line of narration re-bills
  * one beat instead of the whole story.
  *
- * Credentials (set whichever provider you use):
- *   ELEVENLABS_API_KEY   preferred; the most expressive narrator voices
- *   OPENAI_API_KEY       fallback; cheaper per character
+ * Providers, in the order they are chosen:
+ *   ELEVENLABS_API_KEY   hosted; the most expressive narrator voices
+ *   OPENAI_API_KEY       hosted; cheaper per character
+ *   (none)               `local` — runs on this machine, needs nothing
  *
- * With no key set the script explains what is missing and exits 0 — the site still
- * builds and plays using reading-speed estimates.
+ * **`local` is the default**, so narration works with no key, no account and no
+ * network. Set a key only to prefer a hosted voice. Note that hosted providers are
+ * unreachable from sandboxes behind an allowlist proxy, where `local` is the only
+ * option that works — see the driver below.
  */
 
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, unlink, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { spawn } from 'node:child_process';
 import { parseFile } from 'music-metadata';
 import { build as esbuild } from 'esbuild';
+import { Mp3Encoder } from '@breezystack/lamejs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const STORY_DIR = join(ROOT, 'src', 'stories');
 const AUDIO_DIR = join(ROOT, 'public', 'audio');
+
+// --- WAV -> MP3 -------------------------------------------------------------
+
+/**
+ * Read a 16-bit PCM mono WAV into samples.
+ *
+ * Chunks are walked rather than assuming the canonical 44-byte header, because
+ * encoders freely insert `LIST`/`fact` chunks before `data`.
+ */
+function decodeWav(buffer) {
+  if (buffer.toString('ascii', 0, 4) !== 'RIFF' || buffer.toString('ascii', 8, 12) !== 'WAVE') {
+    throw new Error('not a RIFF/WAVE file');
+  }
+  let offset = 12;
+  let sampleRate = 0;
+  let channels = 1;
+  let samples = null;
+
+  while (offset + 8 <= buffer.length) {
+    const id = buffer.toString('ascii', offset, offset + 4);
+    const size = buffer.readUInt32LE(offset + 4);
+    const body = offset + 8;
+    if (id === 'fmt ') {
+      const format = buffer.readUInt16LE(body);
+      const bits = buffer.readUInt16LE(body + 14);
+      if (format !== 1 || bits !== 16) throw new Error(`expected 16-bit PCM, got format ${format} / ${bits}-bit`);
+      channels = buffer.readUInt16LE(body + 2);
+      sampleRate = buffer.readUInt32LE(body + 4);
+    } else if (id === 'data') {
+      const end = Math.min(body + size, buffer.length);
+      samples = new Int16Array((end - body) >> 1);
+      for (let i = 0; i < samples.length; i += 1) samples[i] = buffer.readInt16LE(body + i * 2);
+    }
+    offset = body + size + (size % 2); // chunks are word-aligned
+  }
+
+  if (!sampleRate || !samples) throw new Error('WAV is missing a fmt or data chunk');
+  return { sampleRate, channels, samples };
+}
+
+/**
+ * Encode mono PCM to MP3 in pure JavaScript.
+ *
+ * MP3 rather than the WAV that comes out of the synthesiser, so that everything
+ * downstream — the `.mp3` filenames, the content-hash cache, the stale-file pruning,
+ * `music-metadata`, the manifest — is untouched by which provider produced the audio.
+ * It is also ~10x smaller, which matters because this audio is committed.
+ *
+ * Pure JS because there is no `ffmpeg` here and no way to install one in the
+ * environments this has to run in.
+ */
+function encodeMp3(samples, sampleRate, kbps = 96) {
+  const encoder = new Mp3Encoder(1, sampleRate, kbps);
+  const chunks = [];
+  const BLOCK = 1152; // one MP3 frame
+  for (let i = 0; i < samples.length; i += BLOCK) {
+    const block = encoder.encodeBuffer(samples.subarray(i, i + BLOCK));
+    if (block.length) chunks.push(Buffer.from(block));
+  }
+  const tail = encoder.flush();
+  if (tail.length) chunks.push(Buffer.from(tail));
+  return Buffer.concat(chunks);
+}
 
 // --- TTS drivers ------------------------------------------------------------
 
 /**
  * A driver takes text plus the story's voice hints and returns MP3 bytes.
  * Adding a provider means adding one entry here and nothing else.
+ *
+ * A driver may also offer `speakBatch(...)`, returning a `Map` of key -> MP3 bytes
+ * for every beat at once. Providers that pay a fixed start-up cost per invocation
+ * use it; the rest are called one beat at a time.
  */
 const DRIVERS = {
   elevenlabs: {
@@ -91,22 +164,102 @@ const DRIVERS = {
       return Buffer.from(await response.arrayBuffer());
     },
   },
+
+  /**
+   * On-device synthesis via sherpa-onnx. No key, no account, no per-character cost,
+   * no network once the voice model is cached — and no third party in the pipeline
+   * for what ends up committed to this repo.
+   *
+   * This is the default, and it is the only driver that works from a sandbox whose
+   * proxy allowlists outbound hosts: the hosted APIs above answer to `CONNECT`
+   * denials there long before an API key would matter.
+   *
+   * `voiceId` is the model directory name, which lands in the beat hash — so
+   * switching voices correctly regenerates the story rather than mixing two
+   * narrators across beats. `scripts/tts_local.py` downloads it on first use.
+   */
+  local: {
+    label: 'local (sherpa-onnx)',
+    keyless: true,
+    // Kokoro by default because its durations are stable run to run, so re-narrating
+    // a story does not shift the timeline under the cues. The Piper voices have a
+    // stochastic duration predictor — see scripts/tts_local.py.
+    defaultVoice: process.env.TTS_LOCAL_MODEL ?? 'kokoro-en-v0_19',
+    // These models read briskly out of the box — faster than the unhurried storybook
+    // narrator this project wants. `WORDS_PER_SECOND` in src/lib/story.ts is
+    // calibrated against this pace.
+    defaultSpeed: 0.9,
+    async speakBatch({ beats, voiceId, voice }) {
+      const dir = await mkdtemp(join(tmpdir(), 'narrate-'));
+      try {
+        const request = {
+          model: voiceId,
+          outDir: dir,
+          speed: voice.speed ?? 1,
+          speakerId: voice.speakerId ?? 0,
+          beats: beats.map(({ key, text }) => ({ key, text })),
+        };
+        const { beats: results } = await runPython(join(ROOT, 'scripts', 'tts_local.py'), request);
+        const audio = new Map();
+        for (const result of results) {
+          const { sampleRate, samples } = decodeWav(await readFile(result.file));
+          audio.set(result.key, encodeMp3(samples, sampleRate));
+        }
+        return audio;
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    },
+  },
 };
 
+/** Run a helper script, sending it JSON on stdin and parsing JSON off stdout. */
+function runPython(script, request) {
+  return new Promise((fulfil, reject) => {
+    // stderr is inherited so model downloads and per-beat progress stream through
+    // live; a first run has to fetch a few hundred MB and silence reads as a hang.
+    const child = spawn(process.env.PYTHON ?? 'python3', [script], {
+      cwd: ROOT,
+      stdio: ['pipe', 'pipe', 'inherit'],
+    });
+    let stdout = '';
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => (stdout += chunk));
+    child.on('error', (error) => reject(new Error(`could not start python3: ${error.message}`)));
+    child.on('close', (code) => {
+      if (code !== 0) return reject(new Error(`${script} exited ${code} — see the output above`));
+      try {
+        fulfil(JSON.parse(stdout));
+      } catch {
+        reject(new Error(`${script} did not return JSON`));
+      }
+    });
+    child.stdin.end(JSON.stringify(request));
+  });
+}
+
+/**
+ * Choose a provider: an explicit `TTS_PROVIDER`, else the first hosted one whose key
+ * is set, else `local`.
+ *
+ * The fallback never fails, so there is no "narration pending a key" state — a story
+ * gets a real voice by default and a key only upgrades it.
+ */
 function pickDriver() {
   const requested = process.env.TTS_PROVIDER;
   if (requested) {
     const driver = DRIVERS[requested];
     if (!driver) throw new Error(`Unknown TTS_PROVIDER "${requested}". Options: ${Object.keys(DRIVERS).join(', ')}`);
     const apiKey = process.env[driver.envKey];
-    if (!apiKey) throw new Error(`TTS_PROVIDER=${requested} but ${driver.envKey} is not set.`);
+    if (!driver.keyless && !apiKey) throw new Error(`TTS_PROVIDER=${requested} but ${driver.envKey} is not set.`);
     return { name: requested, driver, apiKey };
   }
   for (const [name, driver] of Object.entries(DRIVERS)) {
+    if (driver.keyless) continue;
     const apiKey = process.env[driver.envKey];
     if (apiKey) return { name, driver, apiKey };
   }
-  return null;
+  return { name: 'local', driver: DRIVERS.local, apiKey: undefined };
 }
 
 // --- story loading ----------------------------------------------------------
@@ -152,7 +305,9 @@ const beatKey = (sceneId, index) => `${sceneId}.${index}`;
 
 function hashBeat(text, provider, voiceId, voice) {
   return createHash('sha256')
-    .update([text.trim(), provider, voiceId, voice.stability ?? '', voice.speed ?? ''].join('\0'))
+    .update(
+      [text.trim(), provider, voiceId, voice.stability ?? '', voice.speed ?? '', voice.speakerId ?? ''].join('\0'),
+    )
     .digest('hex')
     .slice(0, 16);
 }
@@ -170,17 +325,14 @@ async function narrate(file, { force }) {
 
   console.log(`\n${story.title} (${story.slug}) — ${beats.length} beats`);
 
-  if (!selected) {
-    const options = Object.values(DRIVERS)
-      .map((d) => `${d.envKey} (${d.label})`)
-      .join(' or ');
-    console.log(`  no TTS credentials found. Set ${options} to generate narration.`);
-    console.log('  the site still builds and plays using reading-speed estimates.');
-    return;
-  }
-
   const { name: provider, driver, apiKey } = selected;
-  const voice = story.voice ?? {};
+
+  // Resolve the driver's defaults into the voice settings *before* hashing, so the
+  // beat hash reflects what will actually be synthesised. Leaving a default to be
+  // applied inside the driver would let a change to it go unnoticed by the cache,
+  // and every beat would keep its stale audio.
+  const voice = { ...(story.voice ?? {}) };
+  if (voice.speed === undefined && driver.defaultSpeed !== undefined) voice.speed = driver.defaultSpeed;
   const voiceId = voice.id ?? driver.defaultVoice;
   const outDir = join(AUDIO_DIR, story.slug);
   await mkdir(outDir, { recursive: true });
@@ -196,31 +348,43 @@ async function narrate(file, { force }) {
     beats: {},
   };
 
+  // Work out what actually needs synthesising before synthesising any of it. Beats
+  // whose text and voice settings are unchanged are skipped, so re-running after a
+  // one-line edit costs one beat rather than forty — and a batching driver gets the
+  // whole list up front instead of being started once per beat.
+  const plan = beats.map((beat) => {
+    const hash = hashBeat(beat.text, provider, voiceId, voice);
+    const fileName = `${beat.key}.mp3`;
+    const cached = previous.beats?.[beat.key];
+    const reuse = !force && cached?.hash === hash && existsSync(join(outDir, fileName));
+    return { ...beat, hash, fileName, cached, reuse };
+  });
+
+  const pending = plan.filter((item) => !item.reuse);
+  const batch =
+    pending.length && driver.speakBatch
+      ? await driver.speakBatch({ beats: pending, voiceId, apiKey, voice })
+      : null;
+
   let generated = 0;
   let reused = 0;
 
-  for (const beat of beats) {
-    const hash = hashBeat(beat.text, provider, voiceId, voice);
-    const fileName = `${beat.key}.mp3`;
-    const filePath = join(outDir, fileName);
-    const cached = previous.beats?.[beat.key];
-
-    // Skip anything whose text and voice settings are unchanged. Re-running after
-    // a one-line edit should cost one request, not forty.
-    if (!force && cached?.hash === hash && existsSync(filePath)) {
-      manifest.beats[beat.key] = cached;
+  for (const item of plan) {
+    if (item.reuse) {
+      manifest.beats[item.key] = item.cached;
       reused += 1;
       continue;
     }
 
-    process.stdout.write(`  ${beat.key} … `);
-    const audio = await driver.speak({ text: beat.text, voiceId, apiKey, voice });
+    process.stdout.write(`  ${item.key} … `);
+    const audio = batch?.get(item.key) ?? (await driver.speak({ text: item.text, voiceId, apiKey, voice }));
+    const filePath = join(outDir, item.fileName);
     await writeFile(filePath, audio);
     const { format } = await parseFile(filePath);
     const duration = Math.round((format.duration ?? 0) * 1000) / 1000;
-    if (!duration) throw new Error(`could not read a duration from ${fileName}`);
+    if (!duration) throw new Error(`could not read a duration from ${item.fileName}`);
 
-    manifest.beats[beat.key] = { file: fileName, duration, hash };
+    manifest.beats[item.key] = { file: item.fileName, duration, hash: item.hash };
     generated += 1;
     console.log(`${duration.toFixed(2)}s`);
   }

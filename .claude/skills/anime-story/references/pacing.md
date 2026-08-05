@@ -2,15 +2,15 @@
 
 ## The budget
 
-A narrator reads at about **2.6 words per second**, unhurried, with pauses at
-punctuation. Work backwards from the target runtime:
+The generated narrator reads at about **3.5 words per second** once punctuation
+pauses are counted. Work backwards from the target runtime:
 
 | Runtime | Narration words | Beats | Scenes |
 |---|---|---|---|
-| **30 sec** | **~65–75** | **~5** | **2** |
-| 2 min | ~300 | ~17 | 5–6 |
-| 5 min | ~750–800 | ~42 | 12–15 |
-| 8 min | ~1250 | ~68 | 20–24 |
+| **30 sec** | **~95–105** | **~6** | **2** |
+| 2 min | ~415 | ~23 | 7–8 |
+| 5 min | ~1050 | ~58 | 19–20 |
+| 8 min | ~1650 | ~92 | ~30 |
 
 **Default to 30 seconds** unless the user asks for a length. Short pieces can be
 re-cut in a single pass, which is what you want while the art is still being judged.
@@ -18,19 +18,19 @@ The longer rows are where a story goes once the look is settled.
 
 Per unit:
 
-- **A beat** is one or two sentences, ~18 words, ~7 seconds.
-- **A scene** is 3 beats, ~21 seconds — but **2 beats at the 30-second length**, so the
-  piece gets two scenes instead of one long one. A single-scene story has no cut in it
-  and reads as a screensaver.
+- **A beat** is one or two sentences, ~18 words, ~5 seconds.
+- **A scene** is 3 beats, ~16 seconds. At the 30-second length that is two scenes of
+  three beats. A single-scene story has no cut in it and reads as a screensaver.
 
 Do this arithmetic *before* writing. Coming back to cut 200 words after staging
 fourteen scenes means re-cueing all of them.
 
-**Word count alone will undershoot.** `estimateBeatDuration()` in `src/lib/story.ts`
-also charges 0.35s per sentence stop and 0.18s per comma, so punctuation is part of the
-budget. A 75-word draft came out at 34s and only reached 30s after commas and a spare
-sentence were cut. Measure rather than assume: `window.__story.duration` in the browser
-is the resolved runtime.
+**Punctuation is part of the budget.** `estimateBeatDuration()` in `src/lib/story.ts`
+charges 0.35s per sentence stop and 0.18s per comma on top of the word count, so two
+drafts of equal length can differ by seconds. The estimate is fitted to real generated
+audio and lands within about half a second per beat, but it is still an estimate:
+measure rather than assume. `window.__story.duration` in the browser is the resolved
+runtime, and it is exact once `npm run narrate` has run.
 
 If the user's prose is much shorter than the target, expand it — add the quiet
 observational beats a narrator would. If it is much longer, cut to the spine and
@@ -115,20 +115,25 @@ appear on screen, since there are no name cards.
 
 ## Worked example
 
-`last-ticket` in full — 66 words, 30.6 seconds, two scenes:
+`last-ticket` in full — 97 words, **29.6 seconds measured** with real narration, two
+scenes of three and four beats:
 
 > **service** (`storm`)
 > "The fish came in wrong, the bread went black, and Mika dropped a plate at nine."
-> "By the time the last table left, she had stopped counting what it cost her." `hold: 0.5`
+> "By the time the last table left, she had stopped counting what it cost her."
+> "She turned off the burners one by one, and did not turn on the lights." `hold: 0.5`
 >
 > **ticket** (`dawn`)
 > "Ten minutes after the door was locked, the printer woke with one more ticket."
+> "She almost left it in the tray. Her hand went to it out of habit."
 > "Her mother's order. She had driven four hours and had not called ahead."
 > "Mika read it twice. Then she started the rice." `hold: 1.2`
 
-Scene 1 is the whole bad night in two lines — the disasters are *reported*, not staged,
-which is what buys the room to show only the aftermath. Scene 2 is the turn. The last
-beat is the shortest in the piece and gets the longest hold.
+Scene 1 is the whole bad night in three lines — the disasters are *reported*, not
+staged, which is what buys the room to show only the aftermath, and it closes on an
+image rather than a statement. Scene 2 is the turn, and it earns the turn by first
+letting her nearly refuse it. The last beat is the shortest in the piece and gets the
+longest hold.
 
 Note what is not there: no dialogue, no adjective doing work a noun could do, and
 nothing describing what the picture already shows. She is slumped on screen, so the

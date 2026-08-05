@@ -17,6 +17,7 @@
     "standalone": "node scripts/standalone.mjs"
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "astro": "^7.1.6"
   },
   "devDependencies": {
