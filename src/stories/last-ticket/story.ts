@@ -46,6 +46,16 @@ export default defineStory({
           // that is already over, and this is the shot the second beat lands on.
           id: 'mika',
           svg: mika({ pose: 'slump', expression: 'sad', ink: P.storm.ink, rim: P.storm.rim }),
+          variants: {
+            // Same casting, one field changed — which is the point of casting her as
+            // a helper. She wears this for about a second as the plate goes down.
+            flinch: mika({
+              pose: 'slump',
+              expression: 'surprised',
+              ink: P.storm.ink,
+              rim: P.storm.rim,
+            }),
+          },
           x: 940,
           y: FLOOR,
           ambient: 'k-breathe',
@@ -61,11 +71,17 @@ export default defineStory({
             // of the beat, so it must stay inside the beat's real narration length —
             // check it against the manifest after any edit to this line.
             { target: 'camera', do: 'shake', strength: 9, at: 3.4, dur: 0.7 },
+            // She reacts a fraction before the tremor, the way a flinch precedes the
+            // noise reaching you.
+            { target: 'mika', do: 'swap', to: 'flinch', at: 3.35 },
           ],
         },
         {
           text: 'By the time the last table left, she had stopped counting what it cost her.',
-          cues: [{ target: 'mika', do: 'move', dy: 8, dur: 'beat', ease: 'soft' }],
+          cues: [
+            { target: 'mika', do: 'swap', to: 'base', at: 0.2, dur: 0.4 },
+            { target: 'mika', do: 'move', dy: 8, dur: 'beat', ease: 'soft' },
+          ],
         },
         {
           text: 'She turned off the burners one by one, and did not turn on the lights.',

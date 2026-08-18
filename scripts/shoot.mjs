@@ -5,6 +5,12 @@
  *   npm run shoot kit             -> full art-stencil contact sheet
  *   npm run shoot <slug>          -> one PNG per scene of a story
  *   npm run shoot <slug> --sheet  -> a single stacked contact sheet instead
+ *   npm run shoot <slug> --at=3.6,5   -> the exact story seconds named
+ *
+ * `--at` exists because the per-scene shots land mid-scene, which is the right
+ * default for staging but blind to anything brief. A reaction that lasts a second
+ * happens entirely between two of them, so a moment worth checking has to be asked
+ * for by name.
  *
  * Builds the site, serves `dist/`, drives it with the pre-installed Chromium and
  * writes PNGs to `shots/`. This is the real quality gate for the art: a typecheck
@@ -53,6 +59,11 @@ async function main() {
   const target = args.find((a) => !a.startsWith('--')) ?? 'kit';
   const asSheet = args.includes('--sheet');
   const skipBuild = args.includes('--no-build');
+  const moments = (args.find((a) => a.startsWith('--at=')) ?? '')
+    .slice(5)
+    .split(',')
+    .map((n) => Number.parseFloat(n))
+    .filter((n) => Number.isFinite(n));
 
   if (!skipBuild) {
     console.log('building…');
@@ -94,6 +105,17 @@ async function main() {
       await page.waitForTimeout(320);
       const id = await page.evaluate((index) => window.__story.scenes[index].id, i);
       const out = join(SHOTS, target, `${String(i).padStart(2, '0')}-${id}.png`);
+      await page.locator('[data-stage]').screenshot({ path: out });
+      console.log(`wrote ${out}`);
+    }
+
+    for (const at of moments) {
+      // Seeking straight to an absolute time, rather than stepping there, is also
+      // the check: if a swap only looked right when arrived at forwards, this is
+      // where it would come apart.
+      await page.evaluate((time) => window.__player.seek(time), at);
+      await page.waitForTimeout(320);
+      const out = join(SHOTS, target, `at-${at.toFixed(2)}s.png`);
       await page.locator('[data-stage]').screenshot({ path: out });
       console.log(`wrote ${out}`);
     }

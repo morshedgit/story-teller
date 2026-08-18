@@ -192,7 +192,7 @@ export class StoryPlayer {
 
     // Compile only the scene on screen. Compiling all fifteen scenes up front would
     // create thousands of animations, most of them for elements nobody is looking at.
-    this.compiled = compileScene(node, scene.cues);
+    this.compiled = compileScene(node, scene);
     node.dataset.transition = scene.transition;
   }
 

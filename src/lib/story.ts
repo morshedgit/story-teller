@@ -88,9 +88,27 @@ export type Cue =
   /** Reveal a layer that starts hidden, with no movement. */
   | (CueBase & { do: 'show' })
   /** Hide a layer, with no movement. */
-  | (CueBase & { do: 'hide' });
+  | (CueBase & { do: 'hide' })
+  /**
+   * Change *what a layer is drawing* — the only cue that alters the picture rather
+   * than transforming it. `to` names one of the layer's `variants`, or `'base'` for
+   * its original `svg`.
+   *
+   * The engine attaches no meaning to the name. `'surprised'`, `'shattered'` and
+   * `'lit'` are all just keys the story chose, so a reacting face and a breaking
+   * plate are the same operation with different art behind them.
+   */
+  | (CueBase & { do: 'swap'; to: string });
 
 export type CueAction = Cue['do'];
+
+/**
+ * Reserved `swap` target naming a layer's original `svg`.
+ *
+ * Reserved rather than implicit so that returning to the starting drawing reads the
+ * same as any other swap. A layer may not name a variant this.
+ */
+export const BASE_VARIANT = 'base';
 
 /** A drawable element placed in the scene. */
 export interface Layer {
@@ -98,6 +116,16 @@ export interface Layer {
   id: string;
   /** SVG markup, normally from one of this story's own art builders. */
   svg: string;
+  /**
+   * Alternate drawings for this layer, keyed by names this story invents — an
+   * expression, a damage state, a lit sign. All are rendered into the scene and
+   * held at zero opacity until a `swap` cue brings one forward, so switching costs
+   * nothing at runtime and stays seekable in both directions.
+   *
+   * Keep these to genuine changes of state. A variant that differs only by position
+   * or size is a `move` or `scale` cue instead.
+   */
+  variants?: Record<string, string>;
   /** Position of the layer origin in viewBox units (1600x900). Default 0,0. */
   x?: number;
   y?: number;

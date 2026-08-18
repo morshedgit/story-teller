@@ -13,12 +13,14 @@
  */
 
 import {
+  BASE_VARIANT,
   EASINGS,
   beatKey,
   estimateBeatDuration,
   type Cue,
   type CueAction,
   type Duration,
+  type Layer,
   type Story,
   type Transition,
 } from './story';
@@ -94,6 +96,8 @@ const DEFAULT_DURATION: Record<CueAction, Duration> = {
   bob: 'beat',
   show: 0.001,
   hide: 0.001,
+  // Short enough to read as a cut, long enough that the two drawings do not pop.
+  swap: 0.12,
 };
 
 const DEFAULT_EASE: Record<CueAction, keyof typeof EASINGS> = {
@@ -108,6 +112,7 @@ const DEFAULT_EASE: Record<CueAction, keyof typeof EASINGS> = {
   bob: 'inOut',
   show: 'linear',
   hide: 'linear',
+  swap: 'linear',
 };
 
 /** Everything on a cue that is not timing metadata becomes an animation parameter. */
@@ -143,15 +148,33 @@ function resolveDuration(
  */
 function assertTargetsExist(story: Story): void {
   for (const scene of story.scenes) {
-    const ids = new Set<string>(['camera', ...(scene.layers ?? []).map((l) => l.id)]);
+    const byId = new Map<string, Layer>((scene.layers ?? []).map((l) => [l.id, l]));
+    const ids = new Set<string>(['camera', ...byId.keys()]);
     scene.beats.forEach((beat, beatIndex) => {
+      const where = `[${story.slug}] scene "${scene.id}" beat ${beatIndex}`;
       for (const cue of beat.cues ?? []) {
         if (!ids.has(cue.target)) {
           const known = [...ids].join(', ');
           throw new Error(
-            `[${story.slug}] scene "${scene.id}" beat ${beatIndex}: cue targets "${cue.target}", ` +
+            `${where}: cue targets "${cue.target}", ` +
               `which is not a layer in this scene. Known targets: ${known}`,
           );
+        }
+
+        // A swap names art, so the name is checked here for the same reason targets
+        // are: a mistyped variant would otherwise crossfade to nothing at all.
+        if (cue.do === 'swap' && cue.to !== BASE_VARIANT) {
+          const layer = byId.get(cue.target);
+          if (!layer) {
+            throw new Error(`${where}: cue "swap" cannot target the camera.`);
+          }
+          if (!layer.variants?.[cue.to]) {
+            const known = [BASE_VARIANT, ...Object.keys(layer.variants ?? {})].join(', ');
+            throw new Error(
+              `${where}: cue swaps layer "${cue.target}" to variant "${cue.to}", ` +
+                `which that layer does not define. Known variants: ${known}`,
+            );
+          }
         }
       }
     });
@@ -170,6 +193,13 @@ function assertTargetsExist(story: Story): void {
         throw new Error(`[${story.slug}] scene "${scene.id}" has duplicate layer id "${layer.id}"`);
       }
       layerIds.add(layer.id);
+
+      if (layer.variants && BASE_VARIANT in layer.variants) {
+        throw new Error(
+          `[${story.slug}] scene "${scene.id}" layer "${layer.id}" names a variant ` +
+            `"${BASE_VARIANT}", which is reserved for the layer's own \`svg\`.`,
+        );
+      }
     }
   }
 }

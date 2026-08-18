@@ -61,11 +61,34 @@ otherwise. `cut` is jarring by design — use it once, deliberately.
   opacity: 1,                // set 0 for a layer a cue will `enter` or `fade` in
   ambient: 'k-breathe',      // looping CSS classes
   z: 0,                      // paint order; higher is in front. Default array index
+  variants: {                // optional alternate drawings, named by you
+    flinch: hero({ pose: 'stand', expression: 'surprised' }),
+  },
 }
 ```
 
 A layer that a cue will bring in **must start at `opacity: 0`**, or it is visible
 before its entrance.
+
+### Variants
+
+`variants` is how a layer changes what it *is* rather than where it is — a face
+reacting, a plate breaking, a sign lighting up. A `swap` cue names one:
+
+```ts
+{ target: 'hero', do: 'swap', to: 'flinch', at: 3.35 }
+{ target: 'hero', do: 'swap', to: 'base', at: 4.6, dur: 0.4 }
+```
+
+`'base'` is reserved for the layer's own `svg`, so a layer may not name a variant
+that. The names are yours and mean nothing to the engine.
+
+Build the variant from the **same cast helper** with one field changed, exactly as
+the example above does. Rebuilding the character from scratch is how a face stops
+looking like the same person between two frames of one shot.
+
+Every variant is rendered into the scene up front, so keep them to genuine changes
+of state — a variant that differs only in position or size is a `move` or `scale`.
 
 ## Beat
 
@@ -112,6 +135,7 @@ Shared fields:
 | `shake` | `strength` (14) | Decaying tremor. On `camera` for impacts |
 | `flash` | `color` (`#ffffff`) | Full-frame flash. Target is ignored |
 | `show` / `hide` | — | Instant visibility, no movement |
+| `swap` | `to` (variant name, or `'base'`) | Change **what the layer draws** — a reaction, a broken prop, a lit sign |
 
 Cue targets are validated at build time — a typo fails `npm run check` with the
 list of valid targets rather than silently animating nothing.
