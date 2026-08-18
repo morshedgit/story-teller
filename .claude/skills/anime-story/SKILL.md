@@ -33,10 +33,11 @@ break another, which is exactly what happened once and why this exists.
    narration words = ~6 beats. Do the arithmetic before writing anything, and remember
    punctuation costs time too. `references/pacing.md` has the table.
 3. **Break it into shots.** A `scene` in this engine is a **shot** — one framing, held.
-   It is not a location. Thirty seconds wants **6–9 shots**, which means most of them
+   It is not a location. Thirty seconds wants **6–7 shots**, which means most of them
    are the same place seen differently: wide to establish, medium to play the action,
    close for the moment that matters. Two shots across thirty seconds is a slideshow
-   with a voice over it.
+   with a voice over it. A beat lives in exactly one shot, so **shots can never
+   outnumber beats** — to cut faster, write shorter beats.
 4. **Make the story's art.** `cp -r .claude/skills/anime-story/assets/story-scaffold
    src/stories/<slug>`, then **prune `art/` to what this story actually uses.** Delete
    the palettes, locations, props and effects you are not staging. An unused builder is
@@ -248,9 +249,9 @@ the built page's CSS and JS into a single file they can open anywhere. Pass
 fails rather than writing a file that plays silently. Add `--embed` to strip the
 document skeleton for hosts that supply their own.
 
-The reference story `src/stories/last-ticket/` is a worked 30-second example of
-*writing, casting, pruning and narration* — read it for those. *Do not copy its
-shot rhythm.* It was cut before the shot guidance above existed and holds two
-framings across the whole thirty seconds, which is precisely the flatness that
-guidance is there to prevent. It has one reaction, on the dropped plate, which is
-worth reading as the `variants` + `swap` pattern.
+The reference story `src/stories/last-ticket/` is a worked 30-second example: seven
+beats, seven shots, one location, two reactions. Read it for the `closeOn` helper —
+framing a shot means moving the *camera*, since zooming a character without zooming
+the backdrop leaves them oversized against normal-sized scenery — and for how the
+same kitchen carries a close, a wide, an insert on a prop and a medium without ever
+becoming a second location.

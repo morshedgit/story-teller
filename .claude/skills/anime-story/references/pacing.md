@@ -7,10 +7,16 @@ pauses are counted. Work backwards from the target runtime:
 
 | Runtime | Narration words | Beats | Shots |
 |---|---|---|---|
-| **30 sec** | **~95–105** | **~6** | **6–9** |
-| 2 min | ~415 | ~23 | 24–34 |
-| 5 min | ~1050 | ~58 | 60–85 |
-| 8 min | ~1650 | ~92 | 95–130 |
+| **30 sec** | **~95–105** | **~7** | **6–7** |
+| 2 min | ~415 | ~23 | 18–23 |
+| 5 min | ~1050 | ~58 | 46–58 |
+| 8 min | ~1650 | ~92 | 74–92 |
+
+**A beat belongs to exactly one shot, so shots can never outnumber beats.** That is a
+hard engine constraint, not a style rule: a `scene` owns a list of beats, and the cut
+happens at a beat boundary. One shot per beat is the fast end, and it is where a
+30-second piece should sit. To cut faster than that you must write shorter beats —
+the picture cannot outrun the narration.
 
 **Default to 30 seconds** unless the user asks for a length. Short pieces can be
 re-cut in a single pass, which is what you want while the art is still being judged.
@@ -107,6 +113,12 @@ That is a template, not a rule, but if your storyboard has fewer than five entri
 you have written a slideshow. **Two shots is the failure mode this table exists to
 prevent.**
 
+**Never cut between two identical framings.** Same zoom, same mark, same pose, with
+only an expression changed is a jump cut — it reads as the page glitching rather than
+as an edit. If two neighbouring shots want the same subject, change the distance
+between them: a loose shot next to a tight one is an edit, two tight ones are a
+mistake.
+
 Three things keep many shots reading as one continuous place:
 
 - **Keep the character on the same mark across a cut** unless you mean them to have
@@ -150,29 +162,30 @@ appear on screen, since there are no name cards.
 
 ## Worked example
 
-`last-ticket` in full — 97 words, **29.6 seconds measured** with real narration.
+`last-ticket` in full — 97 words, **29.6 seconds measured** with real narration, cut
+as seven shots over seven beats:
 
-Read this for the *writing*: the beat breaks, the restraint, the voice. Its shot
-rhythm is not exemplary — it holds two framings across the whole piece, which is the
-flatness the shot table above exists to prevent. Copy the prose discipline, not the
-storyboard.
-
-> **service** (`storm`)
-> "The fish came in wrong, the bread went black, and Mika dropped a plate at nine."
-> "By the time the last table left, she had stopped counting what it cost her."
-> "She turned off the burners one by one, and did not turn on the lights." `hold: 0.5`
+> *First movement — the night that already happened* (`storm`)
+> **nine** · close · "The fish came in wrong, the bread went black, and Mika dropped a plate at nine." — *shake + flinch*
+> **empty** · wide · "By the time the last table left, she had stopped counting what it cost her."
+> **burners** · insert on the pot · "She turned off the burners one by one, and did not turn on the lights." `hold: 0.5`
 >
-> **ticket** (`dawn`)
-> "Ten minutes after the door was locked, the printer woke with one more ticket."
-> "She almost left it in the tray. Her hand went to it out of habit."
-> "Her mother's order. She had driven four hours and had not called ahead."
-> "Mika read it twice. Then she started the rice." `hold: 1.2`
+> *Second movement — the ticket* (`dawn`, arriving on the one `fade`)
+> **printer** · wide · "Ten minutes after the door was locked, the printer woke with one more ticket."
+> **hand** · medium, reaching · "She almost left it in the tray. Her hand went to it out of habit."
+> **mother** · close · "Her mother's order. She had driven four hours and had not called ahead." — *swap to determined*
+> **rice** · wide · "Mika read it twice. Then she started the rice." `hold: 1.2`
 
-Scene 1 is the whole bad night in three lines — the disasters are *reported*, not
-staged, which is what buys the room to show only the aftermath, and it closes on an
-image rather than a statement. Scene 2 is the turn, and it earns the turn by first
-letting her nearly refuse it. The last beat is the shortest in the piece and gets the
-longest hold.
+Seven shots, one location. The framing carries the structure: it opens tight on a
+face so the plate has somewhere to land, pulls wide to show what that night emptied,
+and tightens again for the decision. Both reactions sit on the two closest shots,
+because that is the only place a change of expression is worth authoring.
+
+The first movement is the whole bad night in three lines — the disasters are
+*reported*, not staged, which is what buys the room to show only the aftermath, and
+it closes on an image rather than a statement. The second is the turn, and it earns
+the turn by first letting her nearly refuse it. The last beat is the shortest in the
+piece and gets the longest hold.
 
 Note what is not there: no dialogue, no adjective doing work a noun could do, and
 nothing describing what the picture already shows. She is slumped on screen, so the
