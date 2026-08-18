@@ -12,7 +12,7 @@
  * story supplied, which is what allows two stories to hold entirely different
  * palettes with nothing shared between them.
  */
-import type { Scene } from '../lib/story';
+import { BASE_VARIANT, type Scene } from '../lib/story';
 
 interface Props {
   scene: Scene;
@@ -33,7 +33,14 @@ const layers = [...(scene.layers ?? [])].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))
           transform={`translate(${layer.x ?? 0} ${layer.y ?? 0}) scale(${(layer.scale ?? 1) * (layer.flip ? -1 : 1)} ${layer.scale ?? 1})`}
         >
           <g data-layer={layer.id} style={`opacity:${layer.opacity ?? 1}`}>
-            <g class={layer.ambient ?? undefined} set:html={layer.svg} />
+            {/* Every variant is drawn up front and held at zero opacity. A `swap`
+                cue then only crossfades between siblings, which keeps it as
+                seekable as any other cue — nothing is created or destroyed as the
+                clock moves, in either direction. */}
+            <g class={layer.ambient ?? undefined} data-variant={BASE_VARIANT} style="opacity:1" set:html={layer.svg} />
+            {Object.entries(layer.variants ?? {}).map(([name, svg]) => (
+              <g class={layer.ambient ?? undefined} data-variant={name} style="opacity:0" set:html={svg} />
+            ))}
           </g>
         </g>
       ))
