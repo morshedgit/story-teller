@@ -5,12 +5,12 @@
 The generated narrator reads at about **3.5 words per second** once punctuation
 pauses are counted. Work backwards from the target runtime:
 
-| Runtime | Narration words | Beats | Scenes |
+| Runtime | Narration words | Beats | Shots |
 |---|---|---|---|
-| **30 sec** | **~95–105** | **~6** | **2** |
-| 2 min | ~415 | ~23 | 7–8 |
-| 5 min | ~1050 | ~58 | 19–20 |
-| 8 min | ~1650 | ~92 | ~30 |
+| **30 sec** | **~95–105** | **~6** | **6–9** |
+| 2 min | ~415 | ~23 | 24–34 |
+| 5 min | ~1050 | ~58 | 60–85 |
+| 8 min | ~1650 | ~92 | 95–130 |
 
 **Default to 30 seconds** unless the user asks for a length. Short pieces can be
 re-cut in a single pass, which is what you want while the art is still being judged.
@@ -18,9 +18,21 @@ The longer rows are where a story goes once the look is settled.
 
 Per unit:
 
-- **A beat** is one or two sentences, ~18 words, ~5 seconds.
-- **A scene** is 3 beats, ~16 seconds. At the 30-second length that is two scenes of
-  three beats. A single-scene story has no cut in it and reads as a screensaver.
+- **A beat** is one or two sentences, ~18 words, ~5 seconds. It is a unit of
+  *narration*.
+- **A shot** — a `scene` in the storyboard — is one framing, held **3–5 seconds**. It
+  is a unit of *picture*.
+
+**These are different axes, and conflating them is what makes a story flat.** A beat
+can span two shots, and a shot can carry two beats. Six beats does not mean six
+shots; it means roughly thirty seconds of narration, over which you cut as often as
+the picture needs. A 30-second piece holding one framing for fifteen seconds is a
+screensaver with a voice on it, however good the writing is.
+
+Most shots are **the same place seen differently**. You are not looking for six
+locations — you are looking for a wide that establishes, a medium that plays the
+action, and a close that carries the moment, restaged from the same backdrop with
+the character at a different `scale` and `y`.
 
 Do this arithmetic *before* writing. Coming back to cut 200 words after staging
 fourteen scenes means re-cueing all of them.
@@ -58,33 +70,56 @@ Bad — too thin to justify its own caption:
 
 ### Structural rhythm
 
-- **Beat 1** of a scene establishes: where we are, what changed.
+Narration groups into threes:
+
+- **Beat 1** establishes: where we are, what changed.
 - **Beat 2** develops: the detail that makes it specific.
 - **Beat 3** lands: the line that carries the feeling. Give it `hold: 0.6–1.2`.
 
-Scene-level shape for a 14-scene piece: 2 scenes to establish, 3–4 to build the
-want, 1 to break it, 2–3 in the low place, 3 to turn it, 1–2 to rest. Put the
-`memory` palette flashback early, around scene 3.
+Call each such group a **movement**. A movement is a unit of story, and it is what
+the arc is built from — it is not a shot. Expect two or three shots inside one.
+
+Arc shape for a 14-movement piece: 2 movements to establish, 3–4 to build the want,
+1 to break it, 2–3 in the low place, 3 to turn it, 1–2 to rest. Put the `memory`
+palette flashback early, around the third.
 
 ### At 30 seconds
 
-None of that arc advice applies — there is no room for an arc, and a flashback inside
-two scenes just costs you the ending. The shape is:
+None of that arc advice applies — there is no room for an arc. The narrative shape is
+two movements:
 
-- **Scene 1** establishes the situation and what it cost. Two beats.
-- **Scene 2** turns it and lands. Two or three beats, the last one holding.
+- **First movement** establishes the situation and what it cost. About three beats.
+- **Second movement** turns it and lands. Three beats, the last one holding.
 
-Everything is carried by the turn between the two scenes, so the cut has to earn it.
-Two things make the pair read as one place rather than two:
+That is the *writing*. The *picture* cuts more often than that. Six to nine shots
+across the two movements, which in practice means roughly:
 
-- **Keep the character on the same mark across the cut.** Moving them across the frame
-  between scenes reads as teleporting, not as time passing.
+| | Shot | Framing |
+|---|---|---|
+| 1 | establish the place | wide, figure small |
+| 2 | settle on the character | medium |
+| 3 | the detail that hurts | close — a prop, a hand, a face |
+| 4 | the turn arrives | medium, new palette |
+| 5 | the reaction to it | **close**, with a `swap` |
+| 6 | the last image | wide again, so the ending has air |
+
+That is a template, not a rule, but if your storyboard has fewer than five entries
+you have written a slideshow. **Two shots is the failure mode this table exists to
+prevent.**
+
+Three things keep many shots reading as one continuous place:
+
+- **Keep the character on the same mark across a cut** unless you mean them to have
+  moved. Sliding them sideways between shots reads as teleporting.
+- **Cut on the framing, not the location.** Same backdrop, different `scale` — that is
+  a camera move in a real film and it is free here.
 - **Reuse a position for a different object.** In `last-ticket` a stockpot stands at
-  x 250 in scene 1 and the finished dish fades in on that exact mark in scene 2 — same
-  spot, opposite end of the night. That rhyme does more than a third scene would.
+  x 250 in the first movement and the finished dish fades in on that exact mark in the
+  second — same spot, opposite end of the night.
 
-A palette change across the cut is the cheapest way to signal the turn: `storm` to
-`dawn` reads as the night breaking without a word spent on it.
+A palette change across the turn is the cheapest way to signal it: `storm` to `dawn`
+reads as the night breaking without a word spent on it. Use `transition: 'cut'`
+between shots inside a movement, and `'fade'` at the turn.
 
 ## Narration voice
 
@@ -115,8 +150,12 @@ appear on screen, since there are no name cards.
 
 ## Worked example
 
-`last-ticket` in full — 97 words, **29.6 seconds measured** with real narration, two
-scenes of three and four beats:
+`last-ticket` in full — 97 words, **29.6 seconds measured** with real narration.
+
+Read this for the *writing*: the beat breaks, the restraint, the voice. Its shot
+rhythm is not exemplary — it holds two framings across the whole piece, which is the
+flatness the shot table above exists to prevent. Copy the prose discipline, not the
+storyboard.
 
 > **service** (`storm`)
 > "The fish came in wrong, the bread went black, and Mika dropped a plate at nine."

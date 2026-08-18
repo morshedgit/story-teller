@@ -29,12 +29,14 @@ break another, which is exactly what happened once and why this exists.
 1. **Read the prose.** Identify the beats that carry the story, the cast, and the
    emotional shape. If the user gave a bare premise instead of finished prose, write
    the narration yourself — see `references/pacing.md` for voice.
-2. **Budget it.** **Default to ~30 seconds** unless the user names a length: ~65–75
-   narration words = ~5 beats = 2 scenes. Do the arithmetic before writing anything,
-   and remember punctuation costs time too. `references/pacing.md` has the table and
-   the short-form structure.
-3. **Break into scenes.** One location or one emotional beat per scene — 2 beats each
-   at 30 seconds, 3 at longer lengths.
+2. **Budget it.** **Default to ~30 seconds** unless the user names a length: ~95–105
+   narration words = ~6 beats. Do the arithmetic before writing anything, and remember
+   punctuation costs time too. `references/pacing.md` has the table.
+3. **Break it into shots.** A `scene` in this engine is a **shot** — one framing, held.
+   It is not a location. Thirty seconds wants **6–9 shots**, which means most of them
+   are the same place seen differently: wide to establish, medium to play the action,
+   close for the moment that matters. Two shots across thirty seconds is a slideshow
+   with a voice over it.
 4. **Make the story's art.** `cp -r .claude/skills/anime-story/assets/story-scaffold
    src/stories/<slug>`, then **prune `art/` to what this story actually uses.** Delete
    the palettes, locations, props and effects you are not staging. An unused builder is
@@ -42,10 +44,11 @@ break another, which is exactly what happened once and why this exists.
 5. **Cast the characters.** Define each person once as a helper function at the top
    of `story.ts` so they look like themselves in every scene. Only `pose` and
    `expression` change shot to shot.
-6. **Stage each scene.** Pick a backdrop + palette, place layers on the ground line,
-   add FX. Consult `references/art-kit.md` for the catalogue and ground lines.
-7. **Write the cues.** Every scene gets at least one camera move. See
-   `references/storyboard-schema.md` for every field.
+6. **Stage each shot.** Pick a backdrop + palette, place layers on the ground line,
+   pick effects that suit *this* shot. Consult `references/art-kit.md` for the
+   catalogue, the ground lines, and the scale ranges for wide/medium/close.
+7. **Write the cues.** Every shot gets a camera move, and anything that happens to a
+   character gets a reaction from them. See `references/storyboard-schema.md`.
 8. **Check it**: `npm run check` — types, cue targets, *and* story isolation. A typo'd
    layer id or an import reaching outside your story fails loudly.
 9. **Look at it**: `npm run shoot <slug>` writes one PNG per scene to `shots/<slug>/`.
@@ -145,16 +148,44 @@ scene guarantees they drift.
 the *real* narration length at build time. A cue written with a hardcoded `dur: 8`
 desyncs the moment real TTS audio replaces the estimate; `dur: 'beat'` never does.
 
-**Every scene needs a camera move.** A static frame for 20 seconds reads as a
-broken page. A slow `scale` to 1.12–1.22 over `dur: 'scene'` is the default. Always
-scale *up*, never below 1 — scaling below 1 exposes the frame edges.
+**Cut. A shot is not a location.** The most common failure of this skill is one
+framing held for fifteen seconds while the narrator talks over it — technically
+animated, actually a slideshow. Change framing every **3–5 seconds**: restage the
+same backdrop with the character at a different `scale` and `y`, and cut to it.
+`references/art-kit.md` has the ranges. Use `transition: 'cut'` when two shots are
+the same moment from a different distance, and `'fade'` only when time passes
+between them.
+
+**Every shot needs a camera move, and it must not always be the same one.** A slow
+`scale` to 1.12–1.22 over `dur: 'scene'` is the resting default, not the answer to
+every shot — it is what makes six shots feel like one. Push in hard and fast on a
+reveal, drift the camera across a wide with `move`, hold dead still for one beat so
+the next move lands. Always scale *up*, never below 1: scaling below 1 exposes the
+frame edges.
+
+**Show the reaction.** When something happens to a character, the character answers
+it — that is the difference between an event and a glitch. Give the layer a
+`variants` entry built from the same cast helper with the expression changed, `swap`
+to it on the beat, and swap back a beat later. A camera shake with nobody reacting
+to it reads as the page breaking.
+
+Reactions need room to be seen. A change of expression is a few pixels at wide
+framing, so put the reaction shot **close** — that is most of what cutting is for.
+
+**Effects are staging, not decoration.** `screenTone` and `vignette` are the house
+baseline and say nothing about a particular moment. Pick per shot: `speedLines` on a
+push-in, `letterbox` on a held beat, `rain`/`mist`/`lightRays` to make a place feel
+like weather. A story staging only the two defaults looks like every other story.
 
 **Pair ambient motion with every character.** `ambient: 'k-breathe'` at minimum.
 Blinking is automatic.
 
-**One positional cue per layer at a time.** Cues on the same layer accumulate in
-scene order (a `move dx: 100` then another `move dx: 100` ends 200 right), but two
-overlapping moves on one layer will fight.
+**Chain cues freely; just don't overlap them on one property.** Cues on a layer
+accumulate in order — a `move dx: 100` then another `move dx: 100` ends 200 to the
+right — and you can stack as many as a shot needs. The engine merges everything
+touching one property into a single track, so a busy layer is safe. What is still
+ambiguous is two cues writing the *same* property over overlapping spans: two
+simultaneous `move`s on one layer have no sensible answer. Sequence them.
 
 ## Narration
 
@@ -190,7 +221,8 @@ Read these as needed — do not try to hold them in your head:
 
 ```bash
 npm run check              # types + cue targets + story isolation
-npm run shoot <slug>       # one PNG per scene -> shots/<slug>/
+npm run shoot <slug>       # one PNG per shot -> shots/<slug>/
+npm run shoot <slug> --at=3.6,4.2        # exact story seconds, for reactions
 npm run dev                # play it: space, arrows, n/p for scenes
 npm run standalone <slug> --with-audio   # one self-contained .html
 ```
@@ -198,10 +230,15 @@ npm run standalone <slug> --with-audio   # one self-contained .html
 `npm run shoot` needs no configuration; it uses the repo's pinned Chromium. Never
 run `playwright install`.
 
-`npm run shoot` captures each scene **55% of the way through**, so a layer that a cue
+`npm run shoot` captures each shot **55% of the way through**, so a layer that a cue
 reveals on the final beat will not appear in the still. Check the payoff separately —
-`window.__player.previewScene(index, 0.97)` in the browser — or you will ship a scene
+`window.__player.previewScene(index, 0.97)` in the browser — or you will ship a shot
 whose most important element you never looked at.
+
+**Reactions are invisible to the per-shot stills.** A `swap` that lasts a second
+happens entirely between two of them. Capture it by name: `npm run shoot <slug>
+--at=3.6,4.2` writes the exact story seconds you ask for. Every reaction you author
+needs one of these, or you have not actually checked it.
 
 **Stills are not a substitute for watching it.** They cannot show pacing, and pacing
 is most of whether a story works. When the person you are building for cannot reach
@@ -211,5 +248,9 @@ the built page's CSS and JS into a single file they can open anywhere. Pass
 fails rather than writing a file that plays silently. Add `--embed` to strip the
 document skeleton for hosts that supply their own.
 
-The reference story `src/stories/last-ticket/` is a worked 30-second example: two
-scenes, seven beats, and an `art/` folder pruned to exactly what it uses.
+The reference story `src/stories/last-ticket/` is a worked 30-second example of
+*writing, casting, pruning and narration* — read it for those. *Do not copy its
+shot rhythm.* It was cut before the shot guidance above existed and holds two
+framings across the whole thirty seconds, which is precisely the flatness that
+guidance is there to prevent. It has one reaction, on the dropped plate, which is
+worth reading as the `variants` + `swap` pattern.
