@@ -21,8 +21,9 @@ and effects **that story owns**.
 | Types | `src/lib/story.ts` | `Story` / `Scene` / `Layer` / `Beat` / `Cue`. Imports no art |
 | Timeline | `src/lib/timing.ts` | Resolves a story to absolute seconds at **build time** |
 | Cue compiler | `src/scripts/animate.ts` | Cues → paused Web Animations |
-| Player | `src/scripts/player.ts` | One clock, audio sync, transport |
+| Player | `src/scripts/player.ts` | One clock, audio sync & ducking, transport |
 | Isolation guard | `scripts/check-isolation.mjs` | Fails the build if a story imports the stencil or another story |
+| Director QA Audit | `scripts/audit.mjs` | Automated cinematography, camera bounds, and staging quality gate |
 | Skill | `.claude/skills/anime-story/` | How to turn prose into a storyboard |
 
 ### Why art is copied, not shared
@@ -70,6 +71,7 @@ has been generated and stays correct once it has.
 npm install
 npm run dev                  # local dev server
 npm run check                # types + validates every cue target
+npm run audit last-ticket    # automated cinematography & staging QA
 npm run build                # static dist/
 npm run preview
 
@@ -123,13 +125,30 @@ Folds the CSS, JS and narration into one HTML file that plays from `file://` wit
 server. `--with-audio` is required for a narrated story: the export refuses to write
 a file that would fetch its audio and play silently.
 
+## Director Skills Suite
+
+The studio includes specialized skills in `.claude/skills/`:
+
+### Genre & Format Directors
+| Skill | Role & Usage |
+|---|---|
+| **`anime-story`** | Lead Anime Director: Creates ~30s animated anime shorts with character rigs, staging, and cinematography cues. |
+| **`tech-explainer`** | Technical Explainer: Creates punchy 20–40s visual explainers for system architectures, algorithms, and data flows. |
+| **`motion-comic`** | Manga & Noir: Creates high-contrast graphic novel shorts with widescreen letterboxing, crash-zooms, and speed lines. |
+| **`social-reels`** | Vertical 9:16 Shorts: Creates mobile-first shorts for TikTok, Reels, and Shorts with 1.5s hooks and centered safe-zone staging. |
+
+### Studio Specialists
+| Skill | Role & Usage |
+|---|---|
+| **`storyboard-scripter`** | Narration Scripter: Adapts raw prose, budgets word counts (3.5 WPM), and breaks narration into atomic visual beats. |
+| **`art-director`** | Art Director: Crafts SVG palettes, custom backdrop builders, character rigs, and furniture/props in `1600 x 900` coordinates. |
+| **`shot-animator`** | Animation Choreographer: Choreographs multi-layer timing, easing curves (`snap`, `anticipate`, `soft`), and camera physics. |
+| **`sound-director`** | Audio & Sound Engineer: Curates ambient soundscapes, calibrates voice settings, and fine-tunes dynamic voice ducking. |
+| **`story-doctor`** | Diagnostic & Polish: Critiques, audits, re-times, and fixes camera/staging defects in existing storyboards. |
+
 ## Adding a story
 
-Invoke the `anime-story` skill with your prose. It reads
-`.claude/skills/anime-story/references/` for the schema, the art catalogue and the
-pacing budget, then writes the story, prunes its art, typechecks it, and screenshots
-every scene to check the staging. Stories default to **~30 seconds** — two scenes,
-six or seven beats, about 100 words — unless you ask for a length.
+Invoke any of the directing skills (e.g. `anime-story`, `tech-explainer`, or `motion-comic`) with your premise or prose. The agent reads the schema, art catalogue, and cinematography guides, writes the storyboard, prunes art, runs `npm run audit`, and generates visuals and narration.
 
 By hand:
 

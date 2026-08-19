@@ -24,48 +24,33 @@ can reach you. The cost is that a stencil improvement will not reach stories alr
 made. That trade is deliberate — shared art meant a fix for one story could silently
 break another, which is exactly what happened once and why this exists.
 
-## Workflow
+## Stage-Gated Production Workflow
 
-1. **Read the prose.** Identify the beats that carry the story, the cast, and the
-   emotional shape. If the user gave a bare premise instead of finished prose, write
-   the narration yourself — see `references/pacing.md` for voice.
-2. **Budget it.** **Default to ~30 seconds** unless the user names a length: ~95–105
-   narration words = ~6 beats. Do the arithmetic before writing anything, and remember
-   punctuation costs time too. `references/pacing.md` has the table.
-3. **Break it into shots.** A `scene` in this engine is a **shot** — one framing, held.
-   It is not a location. Thirty seconds wants **6–7 shots**, which means most of them
-   are the same place seen differently: wide to establish, medium to play the action,
-   close for the moment that matters. Two shots across thirty seconds is a slideshow
-   with a voice over it. A beat lives in exactly one shot, so **shots can never
-   outnumber beats** — to cut faster, write shorter beats.
-4. **Make the story's art.** `cp -r .claude/skills/anime-story/assets/story-scaffold
-   src/stories/<slug>`, then **prune `art/` to what this story actually uses.** Delete
-   the palettes, locations, props and effects you are not staging. An unused builder is
-   not a spare part, it is noise — `last-ticket` cut 1,698 copied lines to 708.
-5. **Cast the characters.** Define each person once as a helper function at the top
-   of `story.ts` so they look like themselves in every scene. Only `pose` and
-   `expression` change shot to shot.
-6. **Stage each shot.** Pick a backdrop + palette, place layers on the ground line,
-   pick effects that suit *this* shot. Consult `references/art-kit.md` for the
-   catalogue, the ground lines, and the scale ranges for wide/medium/close.
-7. **Write the cues.** Every shot gets a camera move, and anything that happens to a
-   character gets a reaction from them. See `references/storyboard-schema.md`.
-8. **Check it**: `npm run check` — types, cue targets, *and* story isolation. A typo'd
-   layer id or an import reaching outside your story fails loudly.
-9. **Look at it**: `npm run shoot <slug>` writes one PNG per scene to `shots/<slug>/`.
-   **Actually read those images.** This step is not optional and not a formality —
-   it is the only thing that catches a character standing in mid-air, buried under an
-   effect, or cropped out of frame. Iterate until every scene reads.
-10. **Narrate**: `npm run narrate <slug>`. This needs no key and no network — see
-    "Narration" below. Do it *before* judging the runtime, because the estimate it
-    replaces can be off by a second or two per beat.
-11. **Measure the runtime and re-check the cues.** `window.__story.duration` is the
-    resolved length. Real audio moves every beat boundary, so a cue with an explicit
-    `at:` may now fire outside its beat — `at` counts from the beat's start, and the
-    beat's true length is in `public/audio/<slug>/manifest.json`. Re-run
-    `npm run shoot <slug>` after narrating.
-12. **Report** what you made: scene count, measured runtime, what you pruned, and
-    anything you had to invent.
+Borrowing from professional production pipelines, execute storyboards in four structured phases rather than attempting everything in one pass:
+
+### Phase 1: Script, Tone & Beat Budgeting
+1. **Read and budget the prose.** **Default to ~30 seconds** (~95–105 narration words = ~6–7 beats). Consult `references/pacing.md`.
+2. **Break into atomic beats.** A beat is one or two sentences (~18 words, ~5s). Break where the listener's mental image changes.
+3. **Plan the movement arc.** Two movements for 30s: Movement 1 establishes situation & cost; Movement 2 turns it and lands on an emotional release.
+
+### Phase 2: Shot Planning & Cinematography Grammar
+1. **Break beats into shots.** A `scene` is a **shot** (one framing held 3–5s). Thirty seconds requires **6–7 shots**. Shots can never outnumber beats.
+2. **Apply cinematography grammar.** Read `references/cinematography.md`. Plan alternating focal lengths:
+   $$\text{Wide (establish)} \longrightarrow \text{Medium (action/prop)} \longrightarrow \text{Close-Up (decision/emotion)} \longrightarrow \text{Wide (release)}$$
+3. **Plan camera moves & reactions.** Every shot gets a deliberate camera move (slow creep-in, lateral drift, or still hold). Every dramatic revelation gets a character `swap` reaction.
+
+### Phase 3: Art Stamping, Rigging & Assembly
+1. **Scaffold and prune.** `cp -r .claude/skills/anime-story/assets/story-scaffold src/stories/<slug>`, then **prune `art/`** to only what this story stages.
+2. **Cast characters once.** Define helper functions (e.g. `const hero = (o) => character({ ... })`) at the top of `story.ts` to guarantee visual continuity.
+3. **Stage each shot.** Place character origins on exact ground lines (`references/art-kit.md`). Use the `closeOn(x, y, zoom)` camera math.
+4. **Sequence cues.** Ensure cue `at` + `dur` stay inside beat durations.
+
+### Phase 4: Audio Synthesis & Automated QA
+1. **Run automated audit:** `npm run audit <slug>` to check ground lines, camera safety bounds, and cue timings.
+2. **Typecheck & isolate:** `npm run check` — types, cue targets, and story isolation.
+3. **Synthesise narration:** `npm run narrate <slug>` (local neural TTS, no key needed).
+4. **Visual QA:** `npm run shoot <slug>` writes PNGs to `shots/<slug>/`. Inspect every still for staging, framing, and reactions.
+5. **Report:** Return scene count, measured runtime, and design decisions.
 
 ## What you are writing
 
@@ -209,18 +194,25 @@ and leave the story on estimated timing — it still plays, with captions.
 
 Read these as needed — do not try to hold them in your head:
 
-- **`references/art-kit.md`** — the stencil catalogue: every backdrop, palette,
-  character option, prop and effect available to copy, plus the ground line for each
-  backdrop. Read this while staging and while deciding what to prune.
-- **`references/storyboard-schema.md`** — every field of `Story`/`Scene`/`Layer`/
-  `Beat`/`Cue`, all 11 cue actions with their parameters, and a worked scene. Read
-  this while cueing.
-- **`references/pacing.md`** — the runtime budget, how to cut prose into beats, and
-  the narration voice. Read this before writing any text.
+- **`references/cinematography.md`** — shot taxonomy (wide/medium/close/insert), camera math & viewport safety, cutting rules, and reaction timing. Read this while framing and cueing.
+- **`references/art-kit.md`** — the stencil catalogue: every backdrop, palette, character option, prop and effect available to copy, plus the ground line for each backdrop. Read this while staging and while deciding what to prune.
+- **`references/storyboard-schema.md`** — every field of `Story`/`Scene`/`Layer`/`Beat`/`Cue`, all 11 cue actions with their parameters, and a worked scene. Read this while cueing.
+- **`references/pacing.md`** — the runtime budget, how to cut prose into beats, and the narration voice. Read this before writing any text.
+
+## Pre-Flight Verification Checklist
+
+Before shipping any story, verify:
+1. **Ground Line Placement:** Are all character feet positioned on the exact ground line for their backdrop?
+2. **Camera Safety:** At high zooms, are target coordinates inside the $[800/\text{zoom}, 1600 - 800/\text{zoom}]$ safety window to prevent blank canvas edges?
+3. **Shot Alternation:** Do consecutive shots change framing distance (avoiding jump cuts)?
+4. **Reaction Coverage:** Does every plot revelation have a corresponding `swap` reaction cue?
+5. **Cue Bounds:** Do all cue timestamps (`at` + `dur`) stay within their beat duration?
+6. **Art Pruning:** Have all unused stencil exports been removed from `art/`?
 
 ## Checking your work
 
 ```bash
+npm run audit <slug>       # automated storyboard & cinematography validation
 npm run check              # types + cue targets + story isolation
 npm run shoot <slug>       # one PNG per shot -> shots/<slug>/
 npm run shoot <slug> --at=3.6,4.2        # exact story seconds, for reactions

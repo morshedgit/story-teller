@@ -69,6 +69,7 @@ export interface ResolvedScene {
   transition: Transition;
   start: number;
   dur: number;
+  ambientAudio: string | null;
   beats: ResolvedBeat[];
   cues: ResolvedCue[];
 }
@@ -80,6 +81,7 @@ export interface ResolvedStory {
   credit: string | null;
   duration: number;
   hasAudio: boolean;
+  ambientAudio: string | null;
   scenes: ResolvedScene[];
 }
 
@@ -271,6 +273,7 @@ export function resolveStory(story: Story, manifest: AudioManifest | null): Reso
       transition: scene.transition ?? 'fade',
       start: sceneStart,
       dur: sceneDur,
+      ambientAudio: scene.ambientAudio ?? story.ambientAudio ?? null,
       beats,
       cues,
     });
@@ -285,6 +288,7 @@ export function resolveStory(story: Story, manifest: AudioManifest | null): Reso
     credit: story.credit ?? null,
     duration: cursor,
     hasAudio,
+    ambientAudio: story.ambientAudio ?? null,
     scenes,
   };
 }
