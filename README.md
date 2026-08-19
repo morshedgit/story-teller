@@ -125,13 +125,21 @@ Folds the CSS, JS and narration into one HTML file that plays from `file://` wit
 server. `--with-audio` is required for a narrated story: the export refuses to write
 a file that would fetch its audio and play silently.
 
+## Director Skills Suite
+
+The studio includes specialized skills in `.claude/skills/`:
+
+| Skill | Role & Usage |
+|---|---|
+| **`anime-story`** | Create ~30s narrated anime shorts with character rigs, staging, and cinematography cues. |
+| **`tech-explainer`** | Create punchy 20–40s visual explainers for system architectures, algorithms, and data flows. |
+| **`motion-comic`** | Create high-contrast graphic novel, noir, and manga shorts with letterboxing and crash-zooms. |
+| **`story-doctor`** | Diagnose, critique, re-time, fix camera bounds, and polish existing storyboards. |
+| **`sound-director`** | Curate ambient soundscapes, calibrate voice settings, and fine-tune dynamic ducking. |
+
 ## Adding a story
 
-Invoke the `anime-story` skill with your prose. It reads
-`.claude/skills/anime-story/references/` for the schema, the art catalogue and the
-pacing budget, then writes the story, prunes its art, typechecks it, and screenshots
-every scene to check the staging. Stories default to **~30 seconds** — two scenes,
-six or seven beats, about 100 words — unless you ask for a length.
+Invoke any of the directing skills (e.g. `anime-story`, `tech-explainer`, or `motion-comic`) with your premise or prose. The agent reads the schema, art catalogue, and cinematography guides, writes the storyboard, prunes art, runs `npm run audit`, and generates visuals and narration.
 
 By hand:
 
