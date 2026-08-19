@@ -129,13 +129,22 @@ a file that would fetch its audio and play silently.
 
 The studio includes specialized skills in `.claude/skills/`:
 
+### Genre & Format Directors
 | Skill | Role & Usage |
 |---|---|
-| **`anime-story`** | Create ~30s narrated anime shorts with character rigs, staging, and cinematography cues. |
-| **`tech-explainer`** | Create punchy 20–40s visual explainers for system architectures, algorithms, and data flows. |
-| **`motion-comic`** | Create high-contrast graphic novel, noir, and manga shorts with letterboxing and crash-zooms. |
-| **`story-doctor`** | Diagnose, critique, re-time, fix camera bounds, and polish existing storyboards. |
-| **`sound-director`** | Curate ambient soundscapes, calibrate voice settings, and fine-tune dynamic ducking. |
+| **`anime-story`** | Lead Anime Director: Creates ~30s animated anime shorts with character rigs, staging, and cinematography cues. |
+| **`tech-explainer`** | Technical Explainer: Creates punchy 20–40s visual explainers for system architectures, algorithms, and data flows. |
+| **`motion-comic`** | Manga & Noir: Creates high-contrast graphic novel shorts with widescreen letterboxing, crash-zooms, and speed lines. |
+| **`social-reels`** | Vertical 9:16 Shorts: Creates mobile-first shorts for TikTok, Reels, and Shorts with 1.5s hooks and centered safe-zone staging. |
+
+### Studio Specialists
+| Skill | Role & Usage |
+|---|---|
+| **`storyboard-scripter`** | Narration Scripter: Adapts raw prose, budgets word counts (3.5 WPM), and breaks narration into atomic visual beats. |
+| **`art-director`** | Art Director: Crafts SVG palettes, custom backdrop builders, character rigs, and furniture/props in `1600 x 900` coordinates. |
+| **`shot-animator`** | Animation Choreographer: Choreographs multi-layer timing, easing curves (`snap`, `anticipate`, `soft`), and camera physics. |
+| **`sound-director`** | Audio & Sound Engineer: Curates ambient soundscapes, calibrates voice settings, and fine-tunes dynamic voice ducking. |
+| **`story-doctor`** | Diagnostic & Polish: Critiques, audits, re-times, and fixes camera/staging defects in existing storyboards. |
 
 ## Adding a story
 
