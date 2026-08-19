@@ -18,13 +18,14 @@ A palette is a unified lighting system for a scene. It binds characters into the
 ```ts
 export interface Palette {
   name: string;
-  sky: [string, string];        // Sky gradient [top, bottom]
-  tint: string;                 // Full-frame wash color
-  tintOpacity: number;          // Typically 0.08–0.22
-  ink: string;                  // Character line color (matches deep shadows)
-  rim: string;                  // Character rim light highlight
-  ground: string;               // Base terrain/floor tone
-  structures: string;           // Buildings/furniture tone
+  sky: [string, string, string]; // Sky gradient [top, mid, horizon]
+  tint: string;                  // Full-frame wash color
+  tintOpacity: number;           // Typically 0.08–0.22
+  ink: string;                   // Character line color (matches deep shadows)
+  rim: string;                   // Character rim light highlight
+  ground: string;                // Base terrain/floor tone
+  wall?: string;                 // Interior wall tone
+  floor?: string;                // Interior floor tone
 }
 ```
 
