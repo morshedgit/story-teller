@@ -21,8 +21,9 @@ and effects **that story owns**.
 | Types | `src/lib/story.ts` | `Story` / `Scene` / `Layer` / `Beat` / `Cue`. Imports no art |
 | Timeline | `src/lib/timing.ts` | Resolves a story to absolute seconds at **build time** |
 | Cue compiler | `src/scripts/animate.ts` | Cues → paused Web Animations |
-| Player | `src/scripts/player.ts` | One clock, audio sync, transport |
+| Player | `src/scripts/player.ts` | One clock, audio sync & ducking, transport |
 | Isolation guard | `scripts/check-isolation.mjs` | Fails the build if a story imports the stencil or another story |
+| Director QA Audit | `scripts/audit.mjs` | Automated cinematography, camera bounds, and staging quality gate |
 | Skill | `.claude/skills/anime-story/` | How to turn prose into a storyboard |
 
 ### Why art is copied, not shared
@@ -70,6 +71,7 @@ has been generated and stays correct once it has.
 npm install
 npm run dev                  # local dev server
 npm run check                # types + validates every cue target
+npm run audit last-ticket    # automated cinematography & staging QA
 npm run build                # static dist/
 npm run preview
 

@@ -25,6 +25,7 @@ interface Elements {
   root: HTMLElement;
   stage: HTMLElement;
   audio: HTMLAudioElement;
+  ambientAudio: HTMLAudioElement | null;
   caption: HTMLElement;
   playButton: HTMLButtonElement;
   scrub: HTMLInputElement;
@@ -82,6 +83,7 @@ export class StoryPlayer {
     this.el.playButton.setAttribute('aria-label', 'Pause');
     this.el.playButton.dataset.state = 'playing';
     this.startBeatAudio(this.beatIndexAt(this.time), true);
+    this.syncAmbientAudio(this.sceneIndexAt(this.time), true);
     this.rafId = requestAnimationFrame(this.frame);
   }
 
@@ -92,6 +94,7 @@ export class StoryPlayer {
     this.el.playButton.setAttribute('aria-label', 'Play');
     this.el.playButton.dataset.state = 'paused';
     this.el.audio.pause();
+    this.el.ambientAudio?.pause();
     cancelAnimationFrame(this.rafId);
   }
 
@@ -105,6 +108,7 @@ export class StoryPlayer {
     this.time = clamp(time, 0, this.story.duration);
     const beat = this.beatIndexAt(this.time);
     this.startBeatAudio(beat, this.playing);
+    this.syncAmbientAudio(this.sceneIndexAt(this.time), this.playing);
     this.render(this.time);
   }
 
@@ -134,6 +138,14 @@ export class StoryPlayer {
       this.time += (now - this.lastFrame) / 1000;
     }
     this.lastFrame = now;
+
+    // Dynamic ambient audio ducking: duck volume when voiceover is actively speaking
+    const ambient = this.el.ambientAudio;
+    if (ambient && !ambient.paused && !ambient.muted) {
+      const isSpeaking = audioIsClock && !audio.paused && !audio.ended;
+      const targetVol = isSpeaking ? 0.22 : 0.72;
+      ambient.volume += (targetVol - ambient.volume) * 0.1;
+    }
 
     if (this.time >= this.story.duration) {
       this.time = this.story.duration;
@@ -194,9 +206,34 @@ export class StoryPlayer {
     // create thousands of animations, most of them for elements nobody is looking at.
     this.compiled = compileScene(node, scene);
     node.dataset.transition = scene.transition;
+    this.syncAmbientAudio(index, this.playing);
   }
 
   // --- audio ----------------------------------------------------------------
+
+  private syncAmbientAudio(sceneIndex: number, shouldPlay: boolean): void {
+    const ambient = this.el.ambientAudio;
+    if (!ambient) return;
+
+    const scene = this.story.scenes[sceneIndex];
+    const src = scene?.ambientAudio ?? this.story.ambientAudio ?? null;
+
+    if (!src) {
+      ambient.pause();
+      ambient.removeAttribute('src');
+      return;
+    }
+
+    const url = new URL(src, location.href).href;
+    if (ambient.src !== url) {
+      ambient.src = src;
+      ambient.load();
+    }
+
+    if (shouldPlay && !ambient.muted) {
+      void ambient.play().catch(() => undefined);
+    }
+  }
 
   private startBeatAudio(beatIndex: number, shouldPlay: boolean): void {
     const beat = this.beatAt(beatIndex);
@@ -310,6 +347,7 @@ export class StoryPlayer {
 
     muteButton.addEventListener('click', () => {
       audio.muted = !audio.muted;
+      if (this.el.ambientAudio) this.el.ambientAudio.muted = audio.muted;
       muteButton.dataset.state = audio.muted ? 'muted' : 'on';
       muteButton.setAttribute('aria-label', audio.muted ? 'Unmute narration' : 'Mute narration');
     });
@@ -365,6 +403,7 @@ export function mountPlayer(story: ResolvedStory): StoryPlayer | null {
     root,
     stage: pick('[data-stage]'),
     audio: pick<HTMLAudioElement>('[data-audio]'),
+    ambientAudio: root.querySelector<HTMLAudioElement>('[data-ambient]'),
     caption: pick('[data-caption]'),
     playButton: pick<HTMLButtonElement>('[data-action="play"]'),
     scrub: pick<HTMLInputElement>('[data-scrub]'),

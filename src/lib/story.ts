@@ -169,6 +169,8 @@ export interface Scene {
   beats: Beat[];
   /** How this scene arrives from the previous one. Default `'fade'`. */
   transition?: Transition;
+  /** Optional scene-specific ambient audio loop (e.g. '/audio/ambient/rain.mp3'). */
+  ambientAudio?: string;
 }
 
 export interface Story {
@@ -176,6 +178,8 @@ export interface Story {
   title: string;
   logline: string;
   credit?: string;
+  /** Optional story-wide ambient sound bed / background loop. */
+  ambientAudio?: string;
   /** Voice hints consumed by `scripts/narrate.mjs`. */
   voice?: {
     /** Provider voice id. Falls back to the driver's default. */

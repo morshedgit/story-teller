@@ -93,11 +93,11 @@ function toEmbed(html) {
  */
 function inlineAudio(html) {
   let count = 0;
-  const out = html.replace(/"audio":"(\/audio\/[^"]+)"/g, (_m, url) => {
+  const out = html.replace(/"(audio|ambientAudio)":"(\/audio\/[^"]+)"/g, (_m, key, url) => {
     const path = join(DIST, url.replace(/^\//, ''));
     if (!existsSync(path)) throw new Error(`the page references ${url}, which is not in dist/`);
     count += 1;
-    return `"audio":"data:audio/mpeg;base64,${readFileSync(path).toString('base64')}"`;
+    return `"${key}":"data:audio/mpeg;base64,${readFileSync(path).toString('base64')}"`;
   });
   return { html: out, count };
 }
