@@ -682,5 +682,48 @@ export const props = {
       <circle cx="-65" cy="35" r="7" fill="${glow}" stroke="${ink}" stroke-width="2"/>
     </g>`;
   },
+
+  /** Expanding concentric ripple rings on water. */
+  splashRings(color = '#ffffff', glow = '#38bdf8'): string {
+    return `<g data-part="splash-rings">
+      <ellipse cx="0" cy="0" rx="45" ry="14" fill="none" stroke="${glow}" stroke-width="2.5" opacity="0.6" class="k-pulse"/>
+      <ellipse cx="0" cy="0" rx="75" ry="22" fill="none" stroke="${color}" stroke-width="2" opacity="0.4" class="k-pulse"/>
+      <ellipse cx="0" cy="0" rx="110" ry="32" fill="none" stroke="${color}" stroke-width="1.2" opacity="0.25"/>
+    </g>`;
+  },
+
+  /** Starburst impact spark on mid-air hit. */
+  sparkHit(glow = '#00f0ff', core = '#ffffff'): string {
+    return `<g data-part="spark-hit" class="k-pop">
+      <circle cx="0" cy="0" r="28" fill="${glow}" opacity="0.4" class="k-pulse"/>
+      <circle cx="0" cy="0" r="12" fill="${core}"/>
+      <!-- Radiating spark spikes -->
+      <line x1="-35" y1="0" x2="35" y2="0" stroke="${core}" stroke-width="3"/>
+      <line x1="0" y1="-35" x2="0" y2="35" stroke="${core}" stroke-width="3"/>
+      <line x1="-24" y1="-24" x2="24" y2="24" stroke="${glow}" stroke-width="2.5"/>
+      <line x1="-24" y1="24" x2="24" y2="-24" stroke="${glow}" stroke-width="2.5"/>
+    </g>`;
+  },
+
+  /** Dramatic anime water splash burst with cascading droplets. */
+  waterSplash(foam = '#ffffff', water = '#38bdf8', ink = '#0c4a6e'): string {
+    return `<g data-part="water-splash" class="k-pop">
+      <!-- Central splash plume -->
+      <path d="M -80 0 Q -60 -140 0 -190 Q 60 -140 80 0 Z" fill="${water}" opacity="0.75"/>
+      <path d="M -50 0 Q -30 -110 0 -160 Q 30 -110 50 0 Z" fill="${foam}"/>
+      <!-- Left & right splash horns -->
+      <path d="M -80 0 Q -140 -80 -190 -110 Q -150 -50 -100 0 Z" fill="${foam}"/>
+      <path d="M 80 0 Q 140 -80 190 -110 Q 150 -50 100 0 Z" fill="${foam}"/>
+      <!-- Flying droplets -->
+      <circle cx="-130" cy="-140" r="8" fill="${foam}"/>
+      <circle cx="-70" cy="-210" r="6" fill="${water}"/>
+      <circle cx="0" cy="-240" r="9" fill="${foam}"/>
+      <circle cx="80" cy="-210" r="7" fill="${water}"/>
+      <circle cx="140" cy="-140" r="8" fill="${foam}"/>
+      <circle cx="-170" cy="-70" r="5" fill="${foam}"/>
+      <circle cx="170" cy="-70" r="5" fill="${foam}"/>
+    </g>`;
+  },
 };
+
 
