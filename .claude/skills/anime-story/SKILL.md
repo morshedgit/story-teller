@@ -46,11 +46,12 @@ Borrowing from professional production pipelines, execute storyboards in four st
 4. **Sequence cues.** Ensure cue `at` + `dur` stay inside beat durations.
 
 ### Phase 4: Audio Synthesis & Automated QA
-1. **Run automated audit:** `npm run audit <slug>` to check ground lines, camera safety bounds, and cue timings.
-2. **Typecheck & isolate:** `npm run check` — types, cue targets, and story isolation.
-3. **Synthesise narration:** `npm run narrate <slug>` (local neural TTS, no key needed).
-4. **Visual QA:** `npm run shoot <slug>` writes PNGs to `shots/<slug>/`. Inspect every still for staging, framing, and reactions.
-5. **Report:** Return scene count, measured runtime, and design decisions.
+1. **Prepare Audio Environment:** Ensure local TTS requirements are installed (`npm run setup:tts` or `pip install -r requirements.txt`) or set an API key (`OPENAI_API_KEY` / `ELEVENLABS_API_KEY`).
+2. **Synthesise narration:** `npm run narrate <slug>` to generate per-beat MP3s and `public/audio/<slug>/manifest.json`. Verify that audio files are produced.
+3. **Run automated audit:** `npm run audit <slug>` to check ground lines, camera safety bounds, cue timings, and audio/ambient asset integrity.
+4. **Typecheck & isolate:** `npm run check` — types, cue targets, and story isolation.
+5. **Visual QA:** `npm run shoot <slug>` writes PNGs to `shots/<slug>/`. Inspect every still for staging, framing, and reactions.
+6. **Report:** Return scene count, measured runtime, audio status (Voiced vs Estimated), and design decisions.
 
 ## What you are writing
 

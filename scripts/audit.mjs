@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { build as esbuild } from 'esbuild';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -110,7 +110,26 @@ async function auditStory(file, { resolveStory }) {
     report('suggestions', `Story runtime is in the 45-60s bracket. Ensure visual pacing maintains engagement.`);
   }
 
-  // 2. Cinematography and Shot Diversity
+  // 2. Audio & Ambient Soundscape Validation
+  if (!resolved.hasAudio) {
+    report(
+      'warnings',
+      `[${story.slug}] Story is running in silent estimated timing mode (no audio manifest found in public/audio/${story.slug}/). Run 'npm run narrate ${story.slug}' to generate voiceover.`,
+    );
+  }
+
+  if (story.ambientAudio) {
+    const cleanPath = story.ambientAudio.replace(/^\/+/, '');
+    const ambientFile = join(ROOT, 'public', cleanPath);
+    if (!existsSync(ambientFile)) {
+      report(
+        'warnings',
+        `[${story.slug}] Story-level ambientAudio file not found: "${story.ambientAudio}" (expected at ${relative(ROOT, ambientFile)}).`,
+      );
+    }
+  }
+
+  // 3. Cinematography and Shot Diversity
   let prevBackdrop = null;
   let prevScale = null;
   let prevZoom = null;
@@ -118,6 +137,18 @@ async function auditStory(file, { resolveStory }) {
   story.scenes.forEach((scene, sceneIdx) => {
     const sceneId = scene.id || `scene-${sceneIdx + 1}`;
     const prefix = `[${story.slug} / ${sceneId}]`;
+
+    // Ambient Audio Check for Scene
+    if (scene.ambientAudio) {
+      const cleanPath = scene.ambientAudio.replace(/^\/+/, '');
+      const ambientFile = join(ROOT, 'public', cleanPath);
+      if (!existsSync(ambientFile)) {
+        report(
+          'warnings',
+          `${prefix} Scene-level ambientAudio file not found: "${scene.ambientAudio}" (expected at ${relative(ROOT, ambientFile)}).`,
+        );
+      }
+    }
 
     // Camera Cues Analysis
     const cameraCues = [];
@@ -246,6 +277,7 @@ async function auditStory(file, { resolveStory }) {
 async function main() {
   const args = process.argv.slice(2);
   const all = args.includes('--all');
+  const strict = args.includes('--strict');
   const slug = args.find((arg) => !arg.startsWith('--'));
 
   const files = await storyFiles(all ? undefined : slug);
@@ -287,8 +319,9 @@ async function main() {
   }
 
   console.log('\n' + '-'.repeat(65));
-  if (totalErrors > 0) {
-    console.log(`\x1b[31mAudit failed with ${totalErrors} error(s) and ${totalWarnings} warning(s).\x1b[0m\n`);
+  if (totalErrors > 0 || (strict && totalWarnings > 0)) {
+    const reason = totalErrors > 0 ? `${totalErrors} error(s) and ${totalWarnings} warning(s)` : `${totalWarnings} warning(s) in strict mode`;
+    console.log(`\x1b[31mAudit failed with ${reason}.\x1b[0m\n`);
     process.exit(1);
   } else {
     console.log(`\x1b[32mAudit clean: 0 errors, ${totalWarnings} warning(s).\x1b[0m\n`);
