@@ -39,9 +39,9 @@ Borrowing from professional production pipelines, execute storyboards in four st
    $$\text{Wide (establish)} \longrightarrow \text{Medium (action/prop)} \longrightarrow \text{Close-Up (decision/emotion)} \longrightarrow \text{Wide (release)}$$
 3. **Plan camera moves & reactions.** Every shot gets a deliberate camera move (slow creep-in, lateral drift, or still hold). Every dramatic revelation gets a character `swap` reaction.
 
-### Phase 3: Art Stamping, Rigging & Assembly
-1. **Scaffold and prune.** `cp -r .claude/skills/anime-story/assets/story-scaffold src/stories/<slug>`, then **prune `art/`** to only what this story stages.
-2. **Cast characters once.** Define helper functions (e.g. `const hero = (o) => character({ ... })`) at the top of `story.ts` to guarantee visual continuity.
+### Phase 3: Generative Art, Rigging & Assembly
+1. **Scaffold and prune or generate.** `cp -r .claude/skills/anime-story/assets/story-scaffold src/stories/<slug>`. You are free to prune, repaint, or author **bespoke SVG code from scratch** in `art/` or inline in `story.ts` following `skills/art-director/SKILL.md`.
+2. **Cast characters & entities once.** Define helper functions (e.g. `const hero = (o) => character({ ... })` or custom SVG builders) at the top of `story.ts` to guarantee visual continuity.
 3. **Stage each shot.** Place character origins on exact ground lines (`references/art-kit.md`). Use the `closeOn(x, y, zoom)` camera math.
 4. **Sequence cues.** Ensure cue `at` + `dur` stay inside beat durations.
 

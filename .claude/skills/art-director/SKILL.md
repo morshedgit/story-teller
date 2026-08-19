@@ -1,110 +1,203 @@
 ---
 name: art-director
-description: Design, draw, and craft new SVG art assets, custom lighting palettes, backdrops, character rigs, and props in src/lib/art-stencil/ or a story's local art/ directory. Use whenever the user asks to draw a new location, create a custom color palette, design new character outfits/hair/poses, craft SVG props, or establish a visual art style.
+description: Master generative SVG illustration, custom character rigs, creature design, atmospheric backdrops, vehicles, props, and cel-shaded lighting systems for Story Teller. Use whenever the user asks to draw, design, illustrate, style, or generate visual art, characters, animals, locations, spaceships, or objects in SVG code from scratch.
 ---
 
-# Art Director
+# Art Director: Generative SVG Illustration Masterclass
 
-Design and construct SVG visual assets, palettes, backdrops, character outfits, and props for Story Teller.
+In Story Teller, art is **pure generative vector code**. There are no pre-baked image assets or static shape templates to select from. You author clean, expressive, studio-grade SVG markup directly for each story.
 
-In Story Teller, all art is **declarative SVG code**. There are no raster PNGs or bitmap textures — every line, gradient, shadow, and rim-light is expressed as vector markup in `1600 x 900` coordinates.
+The engine provides the canvas ($1600 \times 900$), coordinate system, and timeline. **You provide the drawing.**
 
 ---
 
-## 1. Palette Design (`palette.ts`)
+## 1. Universal Coordinate & Rigging Standard
 
-A palette is a unified lighting system for a scene. It binds characters into the backdrop with consistent ink, rim light, and full-frame tint wash.
+All visual elements in Story Teller operate on a unified geometry standard:
 
-```ts
-export interface Palette {
-  name: string;
-  sky: [string, string, string]; // Sky gradient [top, mid, horizon]
-  tint: string;                  // Full-frame wash color
-  tintOpacity: number;           // Typically 0.08–0.22
-  ink: string;                   // Character line color (matches deep shadows)
-  rim: string;                   // Character rim light highlight
-  ground: string;                // Base terrain/floor tone
-  wall?: string;                 // Interior wall tone
-  floor?: string;                // Interior floor tone
-}
+```
+                  Canvas: 1600 x 900 (ViewBox units)
+(0, 0) ────────────────────────────────────────── (1600, 0)
+  │                                                  │
+  │                  HORIZON ≈ 620                   │
+  │  - - - - - - - - - - - - - - - - - - - - - - - - │
+  │                                                  │
+  │              CANONICAL GROUND ≈ 780–810          │
+  │  ══════════════════════════════════════════════  │
+  │  (Character/Prop Origin (0, 0) sits at Ground)   │
+(0, 900) ──────────────────────────────────────── (1600, 900)
 ```
 
-### Palette Crafting Rules
-1. **Never use pure black (`#000000`) for ink:** Use deep slate (`#1e2430`), rich violet (`#251b2e`), or dark forest ink (`#172621`).
-2. **Rim Light Contrast:** The `rim` color must reflect the primary light source (e.g. golden peach `#ffd2a8` for dusk, pale cyan `#b8e2f2` for night).
-3. **Tint Opacity Balance:**
-   * Interior/Day: `0.06–0.12` (subtle wash)
-   * Dramatic exterior / Dusk / Storm: `0.14–0.22` (strong cohesive mood)
-   * Memory / Dream: `0.25–0.35` (washed/vintage look)
+### The Origin Rule (Feet/Base at $(0, 0)$)
+* **Characters, Animals, Props, and Vehicles must place their origin $(0, 0)$ at their base/feet, centered horizontally.**
+* A layer positioned at `x: 800, y: 790` stands firmly on a floor at $y = 790$.
+* Scaling (`scale: 1.2`) expands the entity *upward and outward from the floor* without sinking into the ground.
 
 ---
 
-## 2. Backdrop Construction (`backdrops.ts`)
+## 2. Generative Character & Anatomy Blueprint
 
-Every backdrop builder function accepts `{ palette, seed?, disc?, clouds? }` and returns an SVG markup string within a `<g data-backdrop>` container:
+An anime figure at `scale: 1` is $\approx 440$ units tall (5.5 heads). Negative $y$ goes upward.
 
+```
+Landmarks (Origin = Feet Centre at y = 0):
+  Crown:     y = -442
+  Chin:      y = -362
+  Head:      Center at y = -402
+  Neck:      y = -352
+  Shoulders: y = -336 (width ±30)
+  Hips:      y = -205 (width ±18)
+  Knees:     y = -110
+  Feet:      y = 0
+```
+
+### 1. Expressive Eye Rig (The Life of the Character)
+Anime eyes require depth and specular catchlights to avoid a flat/lifeless look:
 ```ts
-export function cafe({ palette: p, seed = 'default' }: BackdropOptions = {}): string {
-  const rng = seededRng(seed);
+function renderEye(cx: number, color = '#4a6fb5', ink = '#241c36', isClosed = false): string {
+  if (isClosed) {
+    return `<path d="M -10 0 q 10 8 20 0" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/>`;
+  }
   return `
-    <!-- Sky / Window view -->
-    <rect width="1600" height="900" fill="${p.sky[1]}"/>
-    
-    <!-- Room Walls & Ceiling -->
-    <polygon points="0,0 1600,0 1600,650 0,650" fill="${p.structures}" opacity="0.35"/>
-    
-    <!-- Floor & Ground Line (Y = 800) -->
-    <rect y="800" width="1600" height="100" fill="${p.ground}"/>
-    <line x1="0" y1="800" x2="1600" y2="800" stroke="${p.ink}" stroke-width="2"/>
-  `;
+    <g transform="translate(${cx} -400)">
+      <g class="k-blink">
+        <!-- 1. White sclera -->
+        <ellipse cx="0" cy="0" rx="9" ry="11.5" fill="#ffffff"/>
+        <!-- 2. Iris base color -->
+        <ellipse cx="0" cy="1" rx="7.4" ry="10" fill="${color}"/>
+        <!-- 3. Upper eyelid cast shadow -->
+        <path d="M -7.4 1 A 7.4 10 0 0 1 7.4 1 Z" fill="${ink}" opacity="0.35"/>
+        <!-- 4. Deep pupil -->
+        <ellipse cx="0" cy="2.2" rx="3.8" ry="6" fill="${ink}"/>
+        <!-- 5. Dual Specular Catchlights (Primary & Secondary) -->
+        <circle cx="-3" cy="-4" r="3.2" fill="#ffffff"/>
+        <circle cx="3.2" cy="4.2" r="1.8" fill="#ffffff" opacity="0.9"/>
+        <!-- 6. Lash line & eyelid crease -->
+        <path d="M -10 -9 q 10 -6.5 20 0" stroke="${ink}" stroke-width="3.8" fill="none" stroke-linecap="round"/>
+        <path d="M -7.5 -13.5 q 7.5 -3.5 15 0" stroke="${ink}" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.6"/>
+      </g>
+    </g>`;
 }
 ```
 
-### Essential Backdrop Rules
-* **Explicit Ground Line:** Every backdrop must establish a canonical ground line (e.g. $y = 780–810$) where character feet stand. Document this in comments.
-* **Seeded Determinism:** Use `seededRng(seed)` for star fields, brick patterns, window lights, or tree placement so rendering is 100% stable across frames.
-* **Depth Layering:** Structure backdrops into Far Background $\rightarrow$ Midground Structure $\rightarrow$ Foreground Floor.
+### 2. Head, Hair & Cel-Shading
+* **Forehead Shadow:** Add a subtle cast shadow path (`opacity: 0.12` of ink) below the bangs.
+* **Cheek Blush:** Translucent ellipses (`rx="10" ry="6" fill="#ff859d" opacity="0.45"`) on the cheekbones.
+* **Hair Highlight Ring ("Angel Ring"):** An arced highlight band (`fill="${rim}" opacity="0.35"`) across the crown that curves with the skull.
+* **Neck Drop Shadow:** Shadow under the chin onto the neck (`fill="${SKIN.shade}"`).
 
 ---
 
-## 3. Character Rigging & Outfits (`characters.ts`)
+## 3. Generative Creature & Animal Blueprint
 
-Characters are modular SVG rigs assembled from head, hair, eyes, outfit, limbs, and shading:
+Draw quadrupeds, birds, and fantasy beings with flexible joint kinematics and ambient breathing:
+
+```
+Quadruped Anatomy (Origin = Paws at y = 0):
+  Back/Torso:  Ellipse at y ≈ -50 (width: 56, height: 40)
+  Chest/Neck:  y ≈ -65
+  Head/Ears:   Circle at y ≈ -75 (radius: 19) + triangular ear wedges
+  Tail:        Path at rear attached to <g class="k-sway">
+  Legs:        4 rounded rects at y = -34..0
+```
+
+### Quadruped SVG Construction Pattern
+```ts
+export function renderCreature({ color = '#d48b52', ink = '#241c36', eyeColor = '#ffb300' } = {}): string {
+  return `
+    <g data-part="creature" stroke-linejoin="round">
+      <!-- Ground Shadow -->
+      <ellipse cx="0" cy="2" rx="48" ry="9" fill="${ink}" opacity="0.22"/>
+      <!-- Tail with ambient sway -->
+      <g class="k-sway" style="--sway:14px;--t:3.5s" transform="translate(-24 -46)">
+        <path d="M 0 0 C -18 -8 -26 -28 -14 -42 C -8 -48 -2 -42 -6 -32 C -10 -22 -4 -10 0 0" fill="${color}" stroke="${ink}" stroke-width="2.8"/>
+      </g>
+      <!-- Four Paws -->
+      <rect x="-24" y="-34" width="8" height="34" rx="4" fill="${color}" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="-12" y="-34" width="8" height="34" rx="4" fill="${color}" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="10" y="-34" width="8" height="34" rx="4" fill="${color}" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="22" y="-34" width="8" height="34" rx="4" fill="${color}" stroke="${ink}" stroke-width="2.5"/>
+      <!-- Breathing Torso & Head -->
+      <g class="k-breathe" style="--t:4s">
+        <ellipse cx="0" cy="-52" rx="28" ry="21" fill="${color}" stroke="${ink}" stroke-width="2.8"/>
+        <!-- Head -->
+        <g transform="translate(28 -72)">
+          <circle cx="0" cy="0" r="19" fill="${color}" stroke="${ink}" stroke-width="2.8"/>
+          <polygon points="-14,-14 -12,-34 -1,-16" fill="${color}" stroke="${ink}" stroke-width="2.4"/>
+          <polygon points="1,-16 12,-34 14,-14" fill="${color}" stroke="${ink}" stroke-width="2.4"/>
+          <circle cx="6" cy="-4" r="3.6" fill="${eyeColor}" stroke="${ink}" stroke-width="1.2"/>
+          <circle cx="5" cy="-5.2" r="1.2" fill="#ffffff"/>
+        </g>
+      </g>
+    </g>`;
+}
+```
+
+---
+
+## 4. Generative Scenic Environments & Backdrops
+
+Every backdrop must establish **Atmospheric Depth (3-Plane Architecture)**:
+
+```
+[ PLANE 1: FAR ]    Sky Gradient + Sun/Moon + Stars/Clouds + Distant Mountain/Skyline
+[ PLANE 2: MID ]    Midground silhouettes (treeline, buildings, hills) with atmospheric haze
+[ PLANE 3: NEAR ]   Ground Floor (y = 780–810) + Framing elements (posts, windows, desks)
+```
+
+### Architectural & Room Perspective
+For interiors (rooms, cafes, bridges, cockpits):
+1. **Vanishing Point:** Anchor vanishing lines towards a central or slightly off-center focal point.
+2. **Window / Viewport:** Create a prominent portal (`<rect rx="8">` or `<polygon>`) filled with a sky/cosmos linear gradient.
+3. **Floor Plane:** Clean horizontal rect from $y = 800$ to $y = 900$, with horizontal floorboard lines spaced progressively wider as they approach the camera.
+
+### Procedural Natural Terrain
+* Use `ridgePoints(rng, { count, baseline, amplitude })` and `ridgePath(pts, floorY)` from `src/lib/svg.ts` to generate rolling organic ridgelines that never repeat.
+* Stack 3 ridgelines (Far $\rightarrow$ Mid $\rightarrow$ Near), shifting the fill color from soft atmospheric haze to deep, saturated ground tones.
+
+---
+
+## 5. Generative Vehicles, Machines & Sci-Fi Objects
+
+Vehicles and props follow industrial design geometry:
 
 ```ts
-export function character({
-  pose = 'stand',
-  expression = 'neutral',
-  hair = 'short',
-  hairColor = '#2b2a33',
-  outfit = 'jacket',
-  cloth = '#3e4a59',
-  ink = '#1e2430',
-  rim = '#ffd2a8',
-}: CharacterOptions = {}): string {
-  // Origin (0, 0) is the FEET, centered horizontally.
-  // Head sits at y = -402 for a scale 1 character.
+// Starfighter / Cruiser Construction
+export function renderSpaceship({ hull = '#2a3b5c', glow = '#00e5ff', ink = '#151d2a' } = {}): string {
   return `
-    <g class="character-rig" data-pose="${pose}">
-      ${renderLegs(pose, cloth, ink)}
-      ${renderTorso(pose, outfit, cloth, ink, rim)}
-      ${renderHead(expression, hair, hairColor, ink, rim)}
-      ${renderArms(pose, outfit, cloth, ink)}
-    </g>
-  `;
+    <g data-part="spaceship">
+      <!-- Pulsing Plasma Thruster -->
+      <ellipse class="k-pulse" style="--t:1.5s" cx="0" cy="18" rx="24" ry="42" fill="${glow}" opacity="0.85"/>
+      <ellipse class="k-pulse" style="--t:1s" cx="0" cy="10" rx="12" ry="22" fill="#ffffff"/>
+      <!-- Aerodynamic Hull -->
+      <path d="M 0 -220 L 64 -60 L 110 30 L 48 20 L 0 35 L -48 20 L -110 30 L -64 -60 Z" fill="${hull}" stroke="${ink}" stroke-width="4"/>
+      <!-- Glowing Cockpit Canopy -->
+      <ellipse cx="0" cy="-90" rx="18" ry="46" fill="${glow}" opacity="0.8" stroke="${ink}" stroke-width="3"/>
+      <!-- Panel Seams -->
+      <line x1="0" y1="-220" x2="0" y2="35" stroke="${ink}" stroke-width="3" opacity="0.5"/>
+    </g>`;
 }
 ```
 
-### Character Rigging Principles
-* **Origin at Feet:** $(0, 0)$ is always the character's feet, centered. A character placed at `x: 800, y: 790` stands firmly on the floor at $y=790$.
-* **Head Anchor Height:** Standard head center sits at $y = -402$ relative to feet.
-* **Variant Consistency:** Expression variants (`sad`, `surprised`, `determined`, `smile`) only swap the mouth/eyebrow geometry while keeping the skull, eyes, and hair identical.
+---
+
+## 6. The 4-Tone Lighting & Palette Model
+
+To keep visual art unified across all scenes in a story:
+
+| Tone | Role | Implementation |
+|---|---|---|
+| **`sky`** | Atmosphere & Global Light | 3-stop linear gradient (`top`, `mid`, `horizon`) |
+| **`ink`** | Line Work & Deep Shadows | Rich colored black (`#1e2430` slate, `#251b2e` plum, `#172621` forest). **Never `#000000`**. |
+| **`rim`** | Key-Light Specular Rim | Bright edge highlight along character silhouettes (`#ffd2a8` peach, `#b8e2f2` cyan). |
+| **`tint`** | Full-Frame Atmospheric Wash | Overlay rect covering entire canvas with `tintOpacity: 0.08–0.22`. |
 
 ---
 
-## 4. Props & Furniture (`props.ts`)
+## 7. Directing Checklist for Bespoke Art
 
-Props must be self-contained SVG strings with origin at their base:
-* **Tableware:** Stockpot, coffee cup, bento box, ramen bowl, paper ticket.
-* **Furniture:** Dining table, workstation desk, bench, platform lantern.
-* **Order of Staging:** Furniture where characters sit (e.g. tables) must be rendered as separate layers *in front* of the seated character layer.
+When generating art for a story:
+1. **Is $(0, 0)$ at the base?** Ensure all characters, creatures, and props stand on $y = 0$.
+2. **Are gradients unique?** Use `uid('gradient-name')` so document-level SVG IDs never collide between scenes.
+3. **Is cel-shading layered?** Verify that cast shadows (neck, forehead, clothes) use 30% darker base tones or low-opacity ink overlays.
+4. **Does the scene breathe?** Add subtle ambient CSS classes (`k-breathe`, `k-sway`, `k-drift`, `k-flicker`) so the vector world feels alive before cues start.

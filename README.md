@@ -26,24 +26,13 @@ and effects **that story owns**.
 | Director QA Audit | `scripts/audit.mjs` | Automated cinematography, camera bounds, and staging quality gate |
 | Skill | `.claude/skills/anime-story/` | How to turn prose into a storyboard |
 
-### Why art is copied, not shared
+### Generative, isolated vector art (No hardcoded glass ceilings)
 
-A shared art library means editing story B can silently break story A. That is not
-hypothetical — fixing the dining tables for one story changed a scene in another, and
-neither the type system nor the build noticed.
+Instead of relying on fixed, pre-coded visual templates that lock the system into a limited box of shapes, art in Story Teller is **generative declarative SVG code**.
 
-So art is **stamped, not imported**. Creating a story copies the stencil into its own
-`art/`, and it is then pruned to what that story actually stages. From that moment the
-story can repaint or redraw anything with no possibility of disturbing another.
-
-The cost is duplication: a genuine bug fixed in the stencil does not reach stories
-already made, and a rig fix must be applied per story. That is the right trade at this
-size — worth revisiting past roughly a dozen stories.
-
-The engine holds up its end: `src/lib/story.ts` describes only the *shape* a story must
-present (`ScenePalette` is three fields — `name`, `tint`, `tintOpacity`), and
-`SceneStage.astro` imports no art module at all. Two stories can hold entirely
-different palettes with no shared union to register in.
+* **Engine vs. Generative Skills:** The engine provides the timeline, WAAPI interpolation channels (`--cue-x`, `--cue-y`, `--cue-s`, `--cue-r`), master audio synchronization, and director QA audit tools. The agent skills (`art-director`, `anime-story`, `tech-explainer`, `motion-comic`) teach generative SVG drawing, cel-shading, anatomy, perspective, and lighting rules from scratch.
+* **Isolated Ownership:** When a story is authored in `src/stories/<slug>/`, it owns its art outright in `art/` or inline in `story.ts`. An agent can draw custom characters, creatures, spaceships, historical scenes, or architectural spaces freely without depending on pre-baked library functions or risking regressions in other stories.
+* **Zero Engine Bias:** The engine is structurally agnostic (`ScenePalette` requires only `name`, `tint`, `tintOpacity`; `Layer` requires only `id`, `svg`, `x`, `y`). It renders humans, animals, spaceships, microscopic diagrams, or abstract geometry with equal fidelity.
 
 ### The timing model
 
