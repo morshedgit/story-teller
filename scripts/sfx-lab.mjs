@@ -197,7 +197,6 @@ function roomTone() {
   const seconds = 4;
   const buf = canvas(seconds);
   const a = 1 / (1 + (2 * Math.PI * 320) / RATE);
-  let lastIn = 0;
   let lastOut = 0;
 
   for (let i = 0; i < buf.length; i += 1) {
@@ -205,7 +204,6 @@ function roomTone() {
     const white = rand() * 2 - 1;
     // Low-passed noise is the air; the two hums are the motor and its harmonic.
     lastOut = lastOut + (1 - a) * (white - lastOut);
-    lastIn = white;
     buf[i] =
       lastOut * 0.5 +
       Math.sin(2 * Math.PI * 52 * t) * 0.1 +
