@@ -14,6 +14,10 @@ shots/
 # Single-file exports — regenerate with `npm run standalone <slug>`
 dist-standalone/
 
+# Sound-effect auditions — regenerate with `node scripts/sfx-lab.mjs`. Effects that
+# a story actually uses would be committed under public/audio/, as narration is.
+sfx-preview/
+
 # Local TTS voice models — hundreds of MB, re-downloaded on demand by
 # scripts/tts_local.py. The generated audio in public/audio/ IS committed.
 .tts-models/
