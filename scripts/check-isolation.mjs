@@ -83,6 +83,29 @@ async function main() {
   }
 
   console.log(`story isolation: ${slugs.length} stor${slugs.length === 1 ? 'y' : 'ies'} clean`);
+
+  // Verify unified agent instruction files across ecosystems
+  const instructionFiles = [
+    'CLAUDE.md',
+    'GEMINI.md',
+    '.cursorrules',
+    '.windsurfrules',
+    '.github/copilot-instructions.md',
+  ];
+  const canonical = await readFile(join(ROOT, 'AGENTS.md'), 'utf8');
+  for (const rel of instructionFiles) {
+    try {
+      const content = await readFile(join(ROOT, rel), 'utf8');
+      if (content !== canonical) {
+        console.error(`\nAgent instruction drift: ${rel} does not match AGENTS.md.`);
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(`\nMissing agent instruction file: ${rel} (${err.message})`);
+      process.exit(1);
+    }
+  }
+  console.log(`agent instructions: ${instructionFiles.length} ecosystem files synced with AGENTS.md`);
 }
 
 main().catch((error) => {

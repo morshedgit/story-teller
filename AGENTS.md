@@ -39,16 +39,27 @@ The architecture is strictly divided into two distinct halves:
 * Always scaffold art into `src/stories/<slug>/art/` using the stencil as a starter template, then customize palettes, characters, props, and backdrops strictly inside the story's own folder.
 * `npm run check` runs `scripts/check-isolation.mjs` which strictly fails the build if any story violates isolation.
 
-### 3. Skills Drive Autonomous Production
-* Use the specialized studio skills in `.claude/skills/` to orchestrate production:
-  * `anime-story`: End-to-end 4-phase stage-gated production workflow.
-  * `art-director`: Palette color grading, high-contrast silhouettes, and visual tone.
-  * `storyboard-scripter`: Pacing, beat budgeting (~18 words/beat), and movement arcs.
-  * `shot-animator`: Camera choreography, Web Animations easing curves, and multi-layer staging.
-  * `sound-director`: Narration calibration, ambient soundscapes, and ducking.
-  * `story-doctor`: Diagnostics, cue fixing, and cinematography QA.
+### 3. Generative, Unconstrained Vector Art
+* Art in Story Teller is **generative declarative SVG code**, never locked to pre-coded shape templates.
+* Every story owns its art in `src/stories/<slug>/art/` or inline in `story.ts`.
+* The AI skills teach the 4-tone lighting model (base, 30% shade, key-light rim, specular catchlights), eye depth anatomy with dual catchlights, hair shine rings, and 3-plane atmospheric perspective.
 
-### 4. Audio Pipeline & Quality Gates
+### 4. Creative Director Skills Suite Drive Autonomous Production
+* Use the specialized studio skills in `.claude/skills/` to orchestrate production:
+  * **Genre Directors:**
+    * `anime-story`: End-to-end 4-phase stage-gated anime short production.
+    * `tech-explainer`: 20–40s visual animated explainers for architectures and algorithms.
+    * `motion-comic`: Manga & noir shorts with 2.39:1 letterboxing, crash zooms, and speed lines.
+    * `social-reels`: 9:16 vertical shorts for TikTok/Reels with 1.5s visual hooks.
+  * **Studio Specialists:**
+    * `art-director`: Generative SVG drawing, lighting palettes, and cel-shading principles.
+    * `storyboard-scripter`: Pacing, 3.5 WPM word budgeting, and atomic beat breaks.
+    * `shot-animator`: Multi-layer animation timing, easing curves, and camera physics.
+    * `sound-director`: Ambient soundscapes, voice tuning, and dynamic voice ducking.
+    * `story-doctor`: Diagnostics, cue fixing, and cinematography QA.
+
+### 5. Audio Pipeline & Quality Gates
+* Multi-track audio engine supports `ambientAudio` with dynamic volume ducking to ~22% while voiceover speaks.
 * Local neural TTS uses `sherpa-onnx` (`npm run setup:tts`).
-* Always verify audio generation with `npm run audit <slug>`.
-* Audit ensures camera safety bounds ($zoom \ge 1.0$), ground line anchoring, cue timing integrity, and audio asset presence.
+* Always verify audio generation and cinematography with `npm run audit <slug>` and `npm run check`.
+* Audit ensures camera safety bounds ($[800/Z, 1600 - 800/Z]$), ground line anchoring, cue timing integrity, and audio asset presence.
