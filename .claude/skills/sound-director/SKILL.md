@@ -89,7 +89,9 @@ voice: {
 
 ## Quality Gate Checklist
 
-1. **Narration Synthesis:** Run `npm run narrate <slug>` to generate beat MP3s and measure exact durations.
-2. **Timing Alignment:** Check that no cue `at + dur` overflows the measured beat duration in `public/audio/<slug>/manifest.json`.
-3. **Pacing Check:** Run `npm run audit <slug>` to confirm word rates and scene durations.
-4. **Standalone Portability:** Test `node scripts/standalone.mjs <slug> --with-audio` to verify that ambient loops and beat audio inline properly.
+1. **Environment Setup:** Ensure `sherpa-onnx` is installed (`npm run setup:tts`) or a provider API key is set.
+2. **Narration Synthesis:** Run `npm run narrate <slug>` to generate beat MP3s and measure exact durations in `public/audio/<slug>/manifest.json`. Verify that audio files exist.
+3. **Ambient Audio Presence:** Confirm any referenced `ambientAudio` paths physically exist in `public/audio/ambient/`.
+4. **Timing Alignment:** Check that no cue `at + dur` overflows the measured beat duration.
+5. **Pacing Check:** Run `npm run audit <slug>` to confirm word rates, scene durations, and audio asset validity.
+6. **Standalone Portability:** Test `node scripts/standalone.mjs <slug> --with-audio` to verify that ambient loops and beat audio inline properly.

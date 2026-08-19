@@ -90,7 +90,15 @@ def build_tts(model_dir):
     the config, so setting both is at best redundant and at worst silently ignored;
     the speed is passed per utterance instead.
     """
-    import sherpa_onnx
+    try:
+        import sherpa_onnx
+    except ImportError:
+        log("\n  ✗ Missing Python dependency: 'sherpa-onnx'.")
+        log("    To generate local narration, install it with:")
+        log("      npm run setup:tts  (or: python3 -m pip install -r requirements.txt)")
+        log("    Alternatively, use a cloud provider:")
+        log("      export OPENAI_API_KEY=\"...\" or ELEVENLABS_API_KEY=\"...\"\n")
+        sys.exit(1)
 
     tokens = str(model_dir / 'tokens.txt')
     data_dir = str(model_dir / 'espeak-ng-data')

@@ -14,6 +14,8 @@
     "audit": "node scripts/audit.mjs",
     "narrate": "node scripts/narrate.mjs",
     "shoot": "node scripts/shoot.mjs",
+    "setup:tts": "python3 -m pip install -r requirements.txt",
+    "check:tts": "python3 -c 'import sherpa_onnx; print(\"✓ sherpa-onnx ready\")'",
     "deploy": "astro build && wrangler deploy",
     "standalone": "node scripts/standalone.mjs"
   },

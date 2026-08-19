@@ -69,6 +69,7 @@ has been generated and stays correct once it has.
 
 ```bash
 npm install
+npm run setup:tts            # install local neural TTS dependency (sherpa-onnx)
 npm run dev                  # local dev server
 npm run check                # types + validates every cue target
 npm run audit last-ticket    # automated cinematography & staging QA
@@ -86,16 +87,18 @@ transport bar.
 ## Narration
 
 ```bash
+npm run setup:tts                 # install local TTS engine (sherpa-onnx)
 npm run narrate last-ticket       # no key, no account, no network
 npm run build                     # picks up the real durations
 ```
 
 Narration is **generated on your machine** by default, with
-[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) and a neural voice model. There
-is no API key, no per-character cost and no quota, and nothing about the story leaves
-the box. The voice model (~65–300 MB) is downloaded once into `.tts-models/`
-(gitignored) and reused after that; `scripts/tts_local.py` does the synthesis and
-`scripts/narrate.mjs` encodes the result to MP3 in pure JavaScript.
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) and a neural voice model. Run
+`npm run setup:tts` once to install the Python dependency. There is no API key, no
+per-character cost and no quota, and nothing about the story leaves the box. The
+voice model (~65–300 MB) is downloaded once into `.tts-models/` (gitignored) and
+reused after that; `scripts/tts_local.py` does the synthesis and `scripts/narrate.mjs`
+encodes the result to MP3 in pure JavaScript.
 
 | Env var | Effect |
 |---|---|
